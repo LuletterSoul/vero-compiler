@@ -12,6 +12,7 @@ import lombok.Data;
 
 
 /**
+ * 封装了每个Token的词典描述{@link Lexicon}
  * @author XiangDe Liu qq313700046@icloud.com .
  * @version 1.5 created in 13:08 2018/3/11.
  * @since vero-compiler
@@ -23,17 +24,26 @@ public class TokenInfo
 
     private Token tag;
 
+    /**
+     * 所处的词典上下文环境
+     */
     private Lexicon lexicon;
 
-    private Lexer state;
+    /**
+     * 词法分析器信息
+     */
+    private Lexer lexerState;
 
+    /**
+     * 正则表达式的定义
+     */
     private RegularExpression definition;
 
-    public TokenInfo(RegularExpression definition,Lexicon lexicon, Lexer state, Token tag)
+    public TokenInfo(RegularExpression definition, Lexicon lexicon, Lexer lexerState, Token tag)
     {
         this.tag = tag;
         this.lexicon = lexicon;
-        this.state = state;
+        this.lexerState = lexerState;
         this.definition = definition;
     }
 
@@ -46,7 +56,15 @@ public class TokenInfo
             throw new NFAModalInValidException("NFA modal could not be null.");
         }
 
-        nfaModel.getTailState().setTokenIndex(getTag().getIndex());
+        nfaModel.getTailState().setIndex(getTag().getIndex());
         return nfaModel;
+    }
+
+    public Integer getTagIndex() {
+        return this.getTag().getIndex();
+    }
+
+    public Integer getLexerStateIndex() {
+        return this.getLexerState().getIndex();
     }
 }

@@ -9,6 +9,11 @@ package com.vero.compiler.scan.generator;
 
 public class DFAEdge extends Edge {
 
+    public DFAEdge(int symbol, State targetState) {
+        super(symbol, targetState);
+    }
+
+
     public DFAEdge(State targetState) {
         super(targetState);
     }

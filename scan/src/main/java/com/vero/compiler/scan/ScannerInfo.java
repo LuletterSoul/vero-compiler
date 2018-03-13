@@ -8,4 +8,5 @@ package com.vero.compiler.scan;
  */
 
 public class ScannerInfo {
+
 }

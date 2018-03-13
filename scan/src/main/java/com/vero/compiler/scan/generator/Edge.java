@@ -15,6 +15,11 @@ public abstract class Edge
 
     protected State targetState;
 
+    public Edge(int symbol, State targetState) {
+        this.symbol = symbol;
+        this.targetState = targetState;
+    }
+
     public Edge(State targetState) {
         this.targetState = targetState;
     }

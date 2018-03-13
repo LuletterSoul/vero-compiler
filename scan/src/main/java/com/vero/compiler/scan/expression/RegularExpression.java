@@ -26,7 +26,7 @@ public abstract class RegularExpression
 {
     protected RegularExpressionType expressionType;
 
-    protected List<HashSet> compactableCharSet = new LinkedList<>();
+    protected List<HashSet> compressibleCharSet = new LinkedList<>();
 
     protected HashSet<Character> unCompressibleCharSet = new HashSet<>();
 

@@ -3,8 +3,6 @@ package com.vero.compiler.scan.generator;
 
 import lombok.Data;
 
-import java.util.List;
-
 
 /**
  * @author XiangDe Liu qq313700046@icloud.com .
@@ -15,19 +13,19 @@ import java.util.List;
 @Data
 public abstract class State
 {
-    protected Integer tokenIndex;
+    protected Integer index;
 
     protected Edge targetEdge;
 
     public State() {
         // 初始化为-1表示没有token绑定到此状态点
-        this.tokenIndex = -1;
+        this.index = -1;
     }
 
 
 
-    public State(Integer tokenIndex, Edge targetEdge) {
-        this.tokenIndex = tokenIndex;
+    public State(Integer index, Edge targetEdge) {
+        this.index = index;
         this.targetEdge = targetEdge;
     }
 

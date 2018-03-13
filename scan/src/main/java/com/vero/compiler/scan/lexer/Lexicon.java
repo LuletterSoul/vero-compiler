@@ -4,25 +4,32 @@ package com.vero.compiler.scan.lexer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.vero.compiler.scan.ScannerInfo;
 import com.vero.compiler.scan.compress.CompactCharSetManager;
+import com.vero.compiler.scan.expression.LiteralExpression;
 import com.vero.compiler.scan.expression.RegularExpression;
 import com.vero.compiler.scan.token.Token;
 import com.vero.compiler.scan.token.TokenInfo;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
+ *
+ * 这个类相当于一个语言的字典，保存了所有单词的定义，
+ * 同时在内部进行正则表达式到DFA的转换等工作。
  * @author XiangDe Liu qq313700046@icloud.com .
  * @version 1.5 created in 13:09 2018/3/11.
  * @since vero-compiler
  */
 
+
 @Data
+@Slf4j
 public class Lexicon
 {
-    private Lexer defaultState;
+    //默认的词法分析器,一般情况下只有一个;
+    private Lexer defaultLexer;
 
     private List<Lexer> lexerStates;
 
@@ -32,8 +39,8 @@ public class Lexicon
     {
         tokenList = new ArrayList<>();
         lexerStates = new ArrayList<>();
-        defaultState = new Lexer(this, 0);
-        lexerStates.add(defaultState);
+        defaultLexer = new Lexer(this, 0);
+        lexerStates.add(defaultLexer);
     }
 
     public TokenInfo addToken(RegularExpression definition, Lexer state, int indexInState,
@@ -46,55 +53,98 @@ public class Lexicon
         return token;
     }
 
-    public Lexer defineLexer(Lexer baseLexer) {
+    /**
+     * 定义一个具备新状态的词法分析器
+     * @param baseLexer
+     * @return
+     */
+    public Lexer defineLexer(Lexer baseLexer)
+    {
         Integer index = getLexerStates().size();
         Lexer newState = new Lexer(this, index, baseLexer);
         getLexerStates().add(newState);
+        baseLexer.getChildren().add(newState);
         return newState;
     }
 
-
+    /**
+     * {@link com.vero.compiler.scan.expression.SymbolExpression},
+     * {@link com.vero.compiler.scan.expression.LiteralExpression}
+     * {@link LiteralExpression#getCompressibleCharSet()}返回空,
+     * 因为这两种类型的正则表达式没用等价转换的字符集
+     * {@link LiteralExpression#getUnCompressibleCharSet()}返回的是不可被压缩的字符集
+     * <code>""IamString"""</code>表示字面值常量<code>"s"</code>表示的标识符
+     * {@link com.vero.compiler.scan.expression.AlternationExpression}
+     * {@link }
+     * LiteralExpression, AlternationCharSet的GetCompactableCharsets
+     * 和GetUncompactableCharset方法返回值的，
+     * 其中前两个的GetCompactableCharset返回空，
+     * AlternationCharSet类的GetCompactableCharSet返回包含所有可选字符的一个hashset。
+     * GetCompactable方法主要是用来对Alternation这种类型的charset进行压缩用的，
+     * 因为如果不压缩的话，在生成的NFA中，可能会包含太多的edge，占用大量的内存，而是用此压缩方法之后，
+     * 在DFAEdge变可以用压缩后字符所对应的int值来代替真正的char存储在edge中int
+     * {@link CompactCharSetManager#getCompactClass(Character)}
+     * 此时变可以用compactClass来代替真正的char。
+     * 类似求子集的方法
+     * 当然具体的压缩算法在lexicon的方法public
+     * CompactCharSetManager CreateCompactCharSetManager()中，这里是用了一个类似求子集的
+     * 
+     * @return compactCharSetManager
+     */
     public CompactCharSetManager createCompactCharSetManager()
     {
         List<TokenInfo> tokenInfos = getTokenList();
 
-        HashSet<Character> compactableCharSet = new HashSet<>();
-        HashSet<Character> uncompactableCharSet = new HashSet<>();
-
-        List<HashSet> compactableCharSets = new ArrayList<>();
-
-        tokenInfos.forEach( t->{
-            List<HashSet> cs = t.getDefinition().getCompactableCharSet();
+        // 可以被压缩的字符集
+        HashSet<Character> compressibleCharSet = new HashSet<>();
+        // 不可被压缩的字符集
+        HashSet<Character> unCompressibleCharSet = new HashSet<>();
+        List<HashSet> compressibleCharSets = new ArrayList<>();
+        //将分散在每个正则表达式的字符集集合起来
+        tokenInfos.forEach(t -> {
+            List<HashSet> cs = t.getDefinition().getCompressibleCharSet();
             HashSet<Character> ucs = t.getDefinition().getUnCompressibleCharSet();
-            compactableCharSets.addAll(cs);
-            uncompactableCharSet.addAll(ucs);
+            compressibleCharSets.addAll(cs);
+            unCompressibleCharSet.addAll(ucs);
         });
-
-        compactableCharSets.forEach(compactableCharSet::addAll);
-
-        compactableCharSet.removeAll(uncompactableCharSet);
-
+        compressibleCharSets.forEach(compressibleCharSet::addAll);
+        if (log.isDebugEnabled()) {
+            log.debug("Compressible set elements contains ", compressibleCharSet.toString());
+        }
+        //排除所有不可压缩的字符集
+        compressibleCharSet.removeAll(unCompressibleCharSet);
+        log.debug("When remove un-compressible set:", compressibleCharSet);
         Map<HashSet<Integer>, Integer> compactClassDict = new HashMap<>();
         AtomicReference<Integer> compactCharIndex = new AtomicReference<>(1);
+        //字符到等价类的映射表
         Integer[] compactClassTable = new Integer[65536];
-
-        uncompactableCharSet.forEach( ucs ->{
+        unCompressibleCharSet.forEach(ucs -> {
             Integer index = compactCharIndex.getAndSet(compactCharIndex.get() + 1);
+            //将该字符的数值映射到新的等价类下标index
             compactClassTable[ucs] = index;
         });
-        compactableCharSet.forEach( cs ->{
-            HashSet<Integer> setOfCharset = new HashSet<Integer>();
-            for (int i = 0; i < compactableCharSets.size(); i++) {
-                HashSet set = compactableCharSets.get(i);
-                if (set.contains(cs)) {
+        log.debug("Current class table from un-compressible char set:", Arrays.toString(compactClassTable));
+        //求最小子集
+        compressibleCharSet.forEach(cs -> {
+            //遍历所以正则表达式的字符集,搜索每个字符集中可进行压缩字符构建等价类
+            HashSet<Integer> setOfCharset = new HashSet<>();
+            for (int i = 0; i < compressibleCharSets.size(); i++ )
+            {
+                HashSet set = compressibleCharSets.get(i);
+                if (set.contains(cs))
+                {
                     setOfCharset.add(i);
                 }
             }
-            if (compactClassDict.containsKey(setOfCharset)) {
+            //若已经存在对应的等价类,将其映射到新信标Index 如{'a','b','c'} ——》1表示等价的状态{'a','b','c'}映射到新别名状态1
+            if (compactClassDict.containsKey(setOfCharset))
+            {
                 Integer index = compactClassDict.get(setOfCharset);
                 compactClassTable[cs] = index;
             }
-            else{
+            //如不存在,则标记为新的状态
+            else
+            {
                 Integer index = compactCharIndex.getAndSet(compactCharIndex.get() + 1);
                 compactClassDict.put(setOfCharset, index);
                 compactClassTable[cs] = index;
@@ -103,13 +153,14 @@ public class Lexicon
         return new CompactCharSetManager(compactClassTable, compactCharIndex.get());
     }
 
-    public ScannerInfo createScannerInfo()
-    {
-//        DFAModel dfa = f.Create(this);
-//        CompressedTransitionTable ctt = CompressedTransitionTable.Compress(dfa);
-//
-//        return new ScannerInfo(ctt.TransitionTable, ctt.CharClassTable, dfa.GetAcceptTables(),
-//            tokenList.Count);
-        return null;
-    }
+    // public ScannerInfo createScannerInfo()
+    // {
+    // DFAModel dfa = DFAModel.build(this);
+    // CompressedTransitionTable ctt = CompressedTransitionTable.compress(dfa);
+    //
+    // return new ScannerInfo(ctt.getCompressedTransitionTable(), ctt.getCharClassTable(),
+    // dfa.getAcceptTables(),
+    // tokenList.size());
+    // return null;
+    // }
 }

@@ -15,30 +15,53 @@ import java.util.HashSet;
 @Data
 public class CompactCharSetManager
 {
-    private int maxIndex;
+    /**
+     * 等价类的最大下标
+     */
+    private int maxClassIndex;
 
-    private int minIndex = 1;
+    /**
+     * 等价类的最小下标
+     *
+     */
+    private int minClassIndex = 1;
 
     private Integer[] compactCharTable;
 
-    public CompactCharSetManager(Integer[] compactCharTable,int maxIndex) {
-        this.maxIndex = maxIndex;
+
+    public CompactCharSetManager(Integer[] compactCharTable,int maxClassIndex) {
+        this.maxClassIndex = maxClassIndex;
         this.compactCharTable = compactCharTable;
     }
 
+    /***
+     * 获取该字符对应的等价类
+     * @param character 字符
+     * @return 等价类
+     */
     public Integer getCompactClass(Character character)
     {
         return getCompactCharTable()[(Integer.valueOf(character))];
     }
 
+    /**
+     * 判断该字符在等价类表中是否存在映射
+     * @param character 字符
+     * @return 是否存在
+     */
     public boolean hasCompactClass(Character character) {
-        return getCompactClass(character) >= getMinIndex();
+        return getCompactClass(character) >= getMinClassIndex();
     }
 
+    /**
+     * 等价类到字符集的映射
+     * 即反向求出等价类中含有所以字符集
+     * @return 等价类到字符集的映射集
+     */
     public HashSet[] createCompactCharMapTable()
     {
-        HashSet[] result = new HashSet[getMaxIndex()+1];
-        for (int i = 0; i <= getMaxIndex(); i++)
+        HashSet[] result = new HashSet[getMaxClassIndex()+1];
+        for (int i = 0; i <= getMaxClassIndex(); i++)
         {
             result[i] = new HashSet<Character>();
         }
