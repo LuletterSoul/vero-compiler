@@ -9,6 +9,7 @@ import com.vero.compiler.scan.converter.RegularExpressionConverter;
 import com.vero.compiler.scan.generator.NFAModel;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -17,6 +18,7 @@ import lombok.Data;
  * @since vero-compiler
  */
 @Data
+@Slf4j
 public class ConcatenationExpression extends RegularExpression
 {
     private RegularExpression left;
@@ -46,21 +48,19 @@ public class ConcatenationExpression extends RegularExpression
     public HashSet<Character> getUnCompressibleCharSet()
     {
         HashSet<Character> exp1Clone = new HashSet<>(getLeft().getUnCompressibleCharSet());
-
         HashSet<Character> exp2Clone = new HashSet<>(getRight().getUnCompressibleCharSet());
-
         exp1Clone.addAll(exp2Clone);
-
-        return exp2Clone;
+        return exp1Clone;
     }
 
     @Override
     public List<HashSet> getCompressibleCharSets()
     {
         List<HashSet> exp1Clone = new ArrayList<>(getLeft().getCompressibleCharSets());
-
         List<HashSet> exp2Clone = new ArrayList<>(getRight().getCompressibleCharSets());
-
+        if(exp1Clone.toString().equals(exp2Clone.toString())){
+            return exp1Clone;
+        }
         exp1Clone.addAll(exp2Clone);
         return exp1Clone;
     }

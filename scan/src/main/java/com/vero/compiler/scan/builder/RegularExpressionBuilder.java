@@ -15,14 +15,14 @@ import com.vero.compiler.scan.expression.*;
 
 public class RegularExpressionBuilder
 {
-    public  RegularExpression Symbol(char c)
+    public RegularExpression Symbol(char c)
     {
         return new SymbolExpression(RegularExpressionType.Symbol, c);
     }
 
     public RegularExpression Many(RegularExpression regularExpression)
     {
-        if (regularExpression instanceof KleeneStarExpression)
+        if (regularExpression.getExpressionType().equals(RegularExpressionType.KleeneStar))
         {
             return regularExpression;
         }
@@ -37,11 +37,10 @@ public class RegularExpressionBuilder
 
     public RegularExpression Union(RegularExpression expression1, RegularExpression expression2)
     {
-        if (expression1.toString().equalsIgnoreCase(expression2.toString()))
+        if (expression1.toString().equals(expression2.toString()))
         {
             return expression1;
         }
-
         return new AlternationExpression(RegularExpressionType.Alternation, expression1,
             expression2);
     }

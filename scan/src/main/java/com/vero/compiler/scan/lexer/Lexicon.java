@@ -117,7 +117,7 @@ public class Lexicon
         }
         // 排除所有不可压缩的字符集
         compressibleCharSet.removeAll(unCompressibleCharSet);
-        log.debug("When remove un-compressible set:", compressibleCharSet);
+        log.debug("When remove un-compressible set:", compressibleCharSet.toString());
         Map<HashSet<Integer>, Integer> compactClassDict = new HashMap<>();
         AtomicReference<Integer> compactCharIndex = new AtomicReference<>(1);
         // 字符到等价类的映射表
@@ -126,10 +126,13 @@ public class Lexicon
             Integer index = compactCharIndex.getAndSet(compactCharIndex.get() + 1);
             // 将该字符的数值映射到新的等价类下标index
             compactClassTable[ucs] = index;
+            if (log.isDebugEnabled())
+            {
+                log.debug("Mapping:[{}] -------->[{}]", ucs, index);
+            }
         });
         log.debug("Current class table from un-compressible char set:",
             Arrays.toString(compactClassTable));
-        // 求最小子集
         compressibleCharSet.forEach(cs -> {
             // 遍历所以正则表达式的字符集,搜索每个字符集中可进行压缩字符构建等价类
             HashSet<Integer> setOfCharset = new HashSet<>();
@@ -146,6 +149,7 @@ public class Lexicon
             {
                 Integer index = compactClassDict.get(setOfCharset);
                 compactClassTable[cs] = index;
+                log.debug("Mapping:['{}'] -------->[{}]", cs, index);
             }
             // 如不存在,则标记为新的状态
             else
@@ -153,6 +157,7 @@ public class Lexicon
                 Integer index = compactCharIndex.getAndSet(compactCharIndex.get() + 1);
                 compactClassDict.put(setOfCharset, index);
                 compactClassTable[cs] = index;
+                log.debug("Mapping:['{}'] -------->[{}]", cs, index);
             }
         });
         this.compactCharSetManager = new CompactCharSetManager(compactClassTable,

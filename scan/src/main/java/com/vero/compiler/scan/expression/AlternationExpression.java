@@ -58,7 +58,7 @@ public class AlternationExpression extends RegularExpression
     @Override
     public List<HashSet> getCompressibleCharSets()
     {
-        List<HashSet> exp1Clone = new ArrayList<>(getExpression2().getCompressibleCharSets());
+        List<HashSet> exp1Clone = new ArrayList<>(getExpression1().getCompressibleCharSets());
 
         List<HashSet> exp2Clone = new ArrayList<>(getExpression2().getCompressibleCharSets());
 

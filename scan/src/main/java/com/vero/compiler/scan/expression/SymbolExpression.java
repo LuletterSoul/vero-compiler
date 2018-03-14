@@ -44,7 +44,9 @@ public class SymbolExpression extends RegularExpression
     @Override
     public HashSet<Character> getUnCompressibleCharSet()
     {
-        return new HashSet(getSymbol());
+        HashSet<Character> characterHashSet = new HashSet<>();
+        characterHashSet.add(getSymbol());
+        return characterHashSet;
     }
 
     @Override
