@@ -13,6 +13,7 @@ import com.vero.compiler.scan.lexer.Lexicon;
 import com.vero.compiler.scan.token.TokenInfo;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -21,12 +22,15 @@ import lombok.Getter;
  * @since vero-compiler
  */
 
+@Slf4j
 @Getter
 public class DFAModel
 {
     private ArrayList<Integer>[] acceptTables;
 
     private List<DFAState> dfaStates;
+
+    private List<DFAState> terminalStates;
 
     private Lexicon lexicon;
 
@@ -75,11 +79,15 @@ public class DFAModel
         NFAModel lexerNFA = new NFAModel();
 
         lexerNFA.addState(entryState);
+        //使用 | 运算将所有NFA连接在一起形成全部Token的NFA
         lexicon.getTokenList().forEach(t -> {
             NFAModel tokenNFA = t.createFiniteAutomationModel(converter);
+            //将当前Token的入口边挂载到当前的自动机的入口点
             entryState.addEdge(tokenNFA.getEntryEdge());
+            //加入状态点(d)
             lexerNFA.addStates(tokenNFA.getStates());
         });
+        //新建一个入口边,作为整个自动机的入口
         lexerNFA.setEntryEdge(new NFAEdge(entryState));
         nfaModel = lexerNFA;
     }
@@ -93,6 +101,15 @@ public class DFAModel
     {
         getDfaStates().add(state);
         state.setIndex(getDfaStates().size() - 1);
+        recordStateIndexMappingToToken(state);
+    }
+
+    /**
+     * 记录当前状态对应哪一个Token
+     * @param state
+     */
+    private void recordStateIndexMappingToToken(DFAState state) {
+        //增加一列
         for (int i = 0; i < getAcceptTables().length; i++ )
         {
             getAcceptTables()[i].add(-1);
@@ -101,10 +118,10 @@ public class DFAModel
         List<TokenInfo> tokens = getLexicon().getTokenList();
         List<Lexer> lexerStates = getLexicon().getLexerStates();
         // check accept states
-        HashSet<Integer> nfaStateSet = state.getNfaStateSet();
+        HashSet<Integer> nfaStateIndexSet = state.getNfaStateIndexSet();
 
         List<TokenInfo> candidates = new ArrayList<>();
-        for (int i = 0; i < nfaStateSet.size(); i++ )
+        for (int i = 0; i < nfaStateIndexSet.size(); i++ )
         {
             Integer tokenIndex = getNfaModel().getStates().get(i).getIndex();
             if (tokenIndex >= 0)
@@ -126,6 +143,11 @@ public class DFAModel
                 return -1;
             }
         });
+
+        if (log.isDebugEnabled()) {
+            log.debug("Filtered :", candidates.toString());
+        }
+
 
         //根据token所在的词法分析器将Token进行分类
         Map<Integer, List<TokenInfo>> acceptStates = candidates.stream().collect(
@@ -157,7 +179,7 @@ public class DFAModel
                 Integer acceptTokenIndex = acceptEntry.getValue().get(0).getTagIndex();
                 stateTreeQueue.clear();
                 stateTreeQueue.add(lexerStates.get(acceptEntry.getKey()));
-                while (stateTreeQueue.size() > 0)
+                while (!stateTreeQueue.isEmpty())
                 {
                     Lexer currentLexerState = stateTreeQueue.poll();
                     stateTreeQueue.addAll(currentLexerState.getChildren());
@@ -171,52 +193,51 @@ public class DFAModel
 
     private void convertNFAToDFA()
     {
+        //0号状态点为停机状态,所有的非法输入会回到状态0
         DFAState state0 = new DFAState();
         addDFAState(state0);
         DFAState preState1 = new DFAState();
+        //获取入口边的目标状态
         State state = getNfaModel().getEntryEdge().getTargetState();
         Integer nfaStartIndex = state.getIndex();
-        preState1.getNfaStateSet().add(nfaStartIndex);
-        addDFAState(getClosure(preState1));
         if (nfaStartIndex < 0)
         {
             throw new NFAStartIndexException("Nfa start index could not be less zero.");
         }
+        //加入到ε-closure 的闭包子集进行初始化
+        preState1.getNfaStateIndexSet().add(nfaStartIndex);
+        addDFAState(computeClosure(preState1));
         Integer p = 1, j = 0;
-        DFAState[] newStates = new DFAState[getCompactCharSetManager().getMaxClassIndex() + 1];
-        while (j < p)
+        Integer minClassIndex = getCompactCharSetManager().getMinClassIndex();
+        Integer maxClassIndex = getCompactCharSetManager().getMaxClassIndex();
+        DFAState[] newStates = new DFAState[maxClassIndex + 1];
+        log.debug("Current equivalence class index range is [{}~{}]", minClassIndex, maxClassIndex);
+        while (j <=p)
         {
             DFAState sourceState = getDfaStates().get(j);
-            DFAState dfaState = getDfaStates().get(j);
-            Integer minIndex = getCompactCharSetManager().getMinClassIndex();
-            Integer maxIndex = getCompactCharSetManager().getMaxClassIndex();
-            for (int i = minIndex; i <= maxIndex; i++ )
+            for (int symbol = minClassIndex; symbol <= maxClassIndex; symbol++ )
             {
-                newStates[i] = getDFAState(sourceState, i);
+                //symbol ---------> closure(move(sourceState,symbol))
+                //该数组建立了一条边
+                newStates[symbol] = getDFAState(sourceState, symbol);
             }
-            Integer minClassIndex = getCompactCharSetManager().getMinClassIndex();
-            Integer maxClassIndex = getCompactCharSetManager().getMaxClassIndex();
             for (int symbol = minClassIndex; symbol <= maxClassIndex; symbol++ )
             {
                 DFAState e = newStates[symbol];
                 boolean isSetExist = false;
                 for (int i = 0; i <= p; i++ )
                 {
-                    HashSet<Integer> dfaStates = e.getNfaStateSet();
-                    HashSet<Integer> currentDfaStates = getDfaStates().get(i).getNfaStateSet();
-                    AtomicBoolean isTheSame = new AtomicBoolean(true);
-                    dfaStates.forEach(d -> currentDfaStates.forEach(c -> {
-                        if (!c.equals(d))
-                        {
-                            isTheSame.set(false);
-                        }
-                    }));
+                    HashSet<Integer> dfaStates = e.getNfaStateIndexSet();
+                    HashSet<Integer> currentDfaStates = getDfaStates().get(i).getNfaStateIndexSet();
+                    AtomicBoolean isTheSame = isSetExist(dfaStates, currentDfaStates);
+                    //如果子集已存在,直接建立后向边
                     if (isTheSame.get())
                     {
                         DFAEdge newEdge = new DFAEdge(symbol, getDfaStates().get(i));
                         sourceState.addEdge(newEdge);
                         isSetExist = true;
                     }
+                    //不存在,将当前的DFA状态点加入,并建立边
                     if (!isSetExist)
                     {
                         p += 1;
@@ -226,45 +247,84 @@ public class DFAModel
                     }
                 }
             }
+            j += 1;
         }
     }
 
-    private DFAState getDFAState(DFAState start, int symbol)
+    /**
+     * 判断两个子集是否含有相同的元素
+     * 如果含有相同的元素则重复
+     * @param dfaStates
+     * @param currentDfaStates
+     * @return
+     */
+    private AtomicBoolean isSetExist(HashSet<Integer> dfaStates, HashSet<Integer> currentDfaStates) {
+        AtomicBoolean isTheSame = new AtomicBoolean(true);
+        dfaStates.forEach(d -> currentDfaStates.forEach(c -> {
+            if (!c.equals(d))
+            {
+                isTheSame.set(false);
+            }
+        }));
+        return isTheSame;
+    }
+
+
+    /**
+     * 子集构造算法,重复子集的剔除逻辑没有加入,交由调用方处理
+     * @param start 输入的等价状态集
+     * @param equivalenceClassIndex 输入等价类的下标
+     * @return 新的子集
+     */
+    private DFAState getDFAState(DFAState start, Integer equivalenceClassIndex) {
+        DFAState moveResult = move(start, equivalenceClassIndex);
+        return computeClosure(moveResult);
+    }
+    /**
+     *
+     * @param start DFA状态点
+     * @param equivalenceClassIndex 输入经过压缩后的等价类下标
+     * @return move函数产生的转移子集
+     */
+    private DFAState move(DFAState start, Integer equivalenceClassIndex)
     {
-        DFAState target = new DFAState();
+        DFAState result = new DFAState();
         List<NFAState> dfaStates = getNfaModel().getStates();
-        start.getNfaStateSet().forEach(s -> {
+        start.getNfaStateIndexSet().forEach(s -> {
             NFAState nfaState = dfaStates.get(s);
             List<NFAEdge> outEdges = nfaState.getOutEdges();
             for (NFAEdge edge : outEdges)
             {
-                if (!edge.isEmpty() && symbol == edge.getSymbol())
+                //当前边的输入是对应的等价类下标
+                if (!edge.isEmpty() && equivalenceClassIndex == edge.getSymbol())
                 {
                     Integer targetIndex = edge.getTargetState().getIndex();
                     if (targetIndex < 0)
                     {
                         throw new TargetIndexException(("Target lexerState index could not be null"));
                     }
-                    target.getNfaStateSet().add(targetIndex);
+                    //加入闭包集合,即求得move()
+                    result.getNfaStateIndexSet().add(targetIndex);
                 }
             }
         });
-        return getClosure(target);
+        return result;
     }
+
 
     //NFA转换成DFA的第一步求闭包：子集构造算法
     //一般算法的起点是输入State Index为0的DFA状态点
-    private DFAState getClosure(DFAState state)
+    private DFAState computeClosure(DFAState state)
     {
         //新建一个闭包状态集合
         DFAState closure = new DFAState();
         List<NFAState> nfaStates = getNfaModel().getStates();
         //将当前DFA状态点等价的NFA状态点加入到闭包中去
-        closure.getNfaStateSet().addAll(state.getNfaStateSet());
+        closure.getNfaStateIndexSet().addAll(state.getNfaStateIndexSet());
 //        AtomicBoolean changed = new AtomicBoolean(false);
         //准备队列
         Queue<Integer> currentStateIndexQueue = new LinkedList<>();
-        currentStateIndexQueue.addAll(closure.getNfaStateSet());
+        currentStateIndexQueue.addAll(closure.getNfaStateIndexSet());
         //广度优先遍历求最大空符可到达的NFA状态点
         while (!currentStateIndexQueue.isEmpty()) {
             //取出一个NFA的状态点下标
@@ -279,7 +339,7 @@ public class DFAModel
                         throw new TargetIndexException("Target index could not be null.");
                     }
                     //加入到闭包子集
-                    closure.getNfaStateSet().add(targetIndex);
+                    closure.getNfaStateIndexSet().add(targetIndex);
                     //加入到遍历队列
                     currentStateIndexQueue.add(targetIndex);
                 }
@@ -287,7 +347,7 @@ public class DFAModel
         }
 //        while (changed.get())
 //        {
-//            HashSet<Integer> lastStateSet = closure.getNfaStateSet();
+//            HashSet<Integer> lastStateSet = closure.getNfaStateIndexSet();
 //            lastStateSet.forEach(lss -> {
 //                NFAState nfaState = nfaStates.get(lss);
 //                List<NFAEdge> outEdges = nfaState.getOutEdges();
@@ -301,7 +361,7 @@ public class DFAModel
 //                        {
 //                            throw new TargetIndexException("Target index could not be null.");
 //                        }
-//                        changed.set(closure.getNfaStateSet().add(targetIndex) || changed.get());
+//                        changed.set(closure.getNfaStateIndexSet().add(targetIndex) || changed.get());
 //                    }
 //                }
 //            });

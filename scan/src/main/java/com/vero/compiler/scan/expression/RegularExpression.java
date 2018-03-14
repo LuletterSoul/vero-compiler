@@ -5,11 +5,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.vero.compiler.scan.converter.ExpressionConverter;
-import com.vero.compiler.scan.converter.NFAConverter;
 import com.vero.compiler.scan.converter.RegularExpressionConverter;
-import com.vero.compiler.scan.generator.DFAModel;
 import com.vero.compiler.scan.generator.NFAModel;
+
 import lombok.Data;
 
 
@@ -26,7 +24,7 @@ public abstract class RegularExpression
 {
     protected RegularExpressionType expressionType;
 
-    protected List<HashSet> compressibleCharSet = new LinkedList<>();
+    protected List<HashSet> compressibleCharSets = new LinkedList<>();
 
     protected HashSet<Character> unCompressibleCharSet = new HashSet<>();
 
@@ -37,5 +35,14 @@ public abstract class RegularExpression
         this.expressionType = expressionType;
     }
 
-    public abstract NFAModel accept(ExpressionConverter<NFAModel> expressionConverter);
+    public abstract NFAModel accept();
+
+    public RegularExpression(RegularExpressionType expressionType, RegularExpressionConverter regularExpressionConverter) {
+        this.expressionType = expressionType;
+        this.regularExpressionConverter = regularExpressionConverter;
+    }
+
+    public abstract HashSet<Character> getUnCompressibleCharSet();
+
+    public abstract List<HashSet> getCompressibleCharSets();
 }

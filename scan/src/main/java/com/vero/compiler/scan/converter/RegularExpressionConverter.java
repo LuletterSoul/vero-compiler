@@ -16,7 +16,10 @@ public abstract class RegularExpressionConverter implements ExpressionConverter<
 
     public NFAModel convert(RegularExpression expression)
     {
-        return expression.accept(this);
+        if (expression == null) {
+            return null;
+        }
+        return expression.accept();
     }
 
     @Override

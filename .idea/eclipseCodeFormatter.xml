@@ -4,7 +4,7 @@
     <option name="projectSpecificProfile">
       <ProjectSpecificProfile>
         <option name="formatter" value="ECLIPSE" />
-        <option name="pathToConfigFileJava" value="E:/.IntelliJIdea2017.3/格式规范/codeformat.xml" />
+        <option name="pathToConfigFileJava" value="F:/格式规范/codeformat.xml" />
         <option name="selectedJavaProfile" value="mcity_codeformat" />
       </ProjectSpecificProfile>
     </option>

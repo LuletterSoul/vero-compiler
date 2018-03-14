@@ -55,7 +55,7 @@ public class CompactCharSetManager
 
     /**
      * 等价类到字符集的映射
-     * 即反向求出等价类中含有所以字符集
+     * 即反向求出等价类中含有所有字符集
      * @return 等价类到字符集的映射集
      */
     public HashSet[] createCompactCharMapTable()

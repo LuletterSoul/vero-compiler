@@ -67,4 +67,14 @@ public class TokenInfo
     public Integer getLexerStateIndex() {
         return this.getLexerState().getIndex();
     }
+
+    @Override
+    public String toString() {
+        return "TokenInfo{" +
+                "tag=" + tag +
+                ", lexicon=" + lexicon +
+                ", lexerState=" + lexerState +
+                ", definition=" + definition +
+                '}';
+    }
 }

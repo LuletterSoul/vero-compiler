@@ -44,4 +44,13 @@ public class Token
     {
         return Objects.hashCode(super.hashCode(), index);
     }
+
+    @Override
+    public String toString() {
+        return "Token{" +
+                "index=" + index +
+                ", description='" + description + '\'' +
+                ", lexerIndex=" + lexerIndex +
+                '}';
+    }
 }

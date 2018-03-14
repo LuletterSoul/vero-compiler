@@ -24,14 +24,18 @@ public class DFAState extends State
 {
     private Integer index;
 
-    private HashSet<Integer> nfaStateSet;
+    /**
+     * ε-closure 的闭包子集
+     * 集合中的每个元素是经过压缩后的等价类下标;
+     */
+    private HashSet<Integer> nfaStateIndexSet;
 
     private List<DFAEdge> outEdges;
 
     public DFAState()
     {
         outEdges = new ArrayList<DFAEdge>();
-        nfaStateSet = new HashSet<Integer>();
+        nfaStateIndexSet = new HashSet<Integer>();
     }
 
     public void addEdge(DFAEdge edge)
