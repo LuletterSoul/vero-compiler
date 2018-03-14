@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import com.vero.compiler.scan.converter.RegularExpressionConverter;
 import com.vero.compiler.scan.generator.NFAModel;
 
 import lombok.Data;
@@ -35,9 +36,9 @@ public class SymbolExpression extends RegularExpression
     }
 
     @Override
-    public NFAModel accept()
+    public NFAModel accept(RegularExpressionConverter converter)
     {
-        return regularExpressionConverter.convertSymbol(this);
+        return converter.convertSymbol(this);
     }
 
     @Override

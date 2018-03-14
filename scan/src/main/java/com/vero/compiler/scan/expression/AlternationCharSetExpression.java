@@ -30,27 +30,13 @@ public class AlternationCharSetExpression extends RegularExpression
     }
 
     public AlternationCharSetExpression(RegularExpressionType expressionType,
-                                        RegularExpressionConverter regularExpressionConverter)
-    {
-
-        super(expressionType, regularExpressionConverter);
-        this.characters = new ArrayList<>();
-    }
-
-    public AlternationCharSetExpression(RegularExpressionType expressionType,
                                         List<Character> characters)
     {
         super(expressionType);
         this.characters = characters;
     }
 
-    public AlternationCharSetExpression(RegularExpressionType expressionType,
-                                        RegularExpressionConverter regularExpressionConverter,
-                                        List<Character> characters)
-    {
-        super(expressionType, regularExpressionConverter);
-        this.characters = characters;
-    }
+
 
     @Override
     public HashSet<Character> getUnCompressibleCharSet()
@@ -65,9 +51,9 @@ public class AlternationCharSetExpression extends RegularExpression
     }
 
     @Override
-    public NFAModel accept()
+    public NFAModel accept(RegularExpressionConverter converter)
     {
-        return regularExpressionConverter.convertAlternationCharSet(this);
+        return converter.convertAlternationCharSet(this);
     }
 
     @Override

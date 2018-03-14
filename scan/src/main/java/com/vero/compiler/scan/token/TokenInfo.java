@@ -1,9 +1,9 @@
 package com.vero.compiler.scan.token;
 
 
+import com.vero.compiler.scan.converter.RegularExpressionConverter;
 import com.vero.compiler.scan.exception.NFAModalInValidException;
 import com.vero.compiler.scan.expression.RegularExpression;
-import com.vero.compiler.scan.generator.NFAConverter;
 import com.vero.compiler.scan.generator.NFAModel;
 import com.vero.compiler.scan.lexer.Lexer;
 import com.vero.compiler.scan.lexer.Lexicon;
@@ -13,6 +13,7 @@ import lombok.Data;
 
 /**
  * 封装了每个Token的词典描述{@link Lexicon}
+ * 
  * @author XiangDe Liu qq313700046@icloud.com .
  * @version 1.5 created in 13:08 2018/3/11.
  * @since vero-compiler
@@ -47,7 +48,7 @@ public class TokenInfo
         this.definition = definition;
     }
 
-    public NFAModel createFiniteAutomationModel(NFAConverter converter)
+    public NFAModel createFiniteAutomationModel(RegularExpressionConverter converter)
     {
         NFAModel nfaModel = converter.convert(getDefinition());
 
@@ -60,21 +61,18 @@ public class TokenInfo
         return nfaModel;
     }
 
-    public Integer getTagIndex() {
+    public Integer getTagIndex()
+    {
         return this.getTag().getIndex();
     }
 
-    public Integer getLexerStateIndex() {
+    public Integer getLexerStateIndex()
+    {
         return this.getLexerState().getIndex();
     }
 
     @Override
     public String toString() {
-        return "TokenInfo{" +
-                "tag=" + tag +
-                ", lexicon=" + lexicon +
-                ", lexerState=" + lexerState +
-                ", definition=" + definition +
-                '}';
+        return definition.toString();
     }
 }

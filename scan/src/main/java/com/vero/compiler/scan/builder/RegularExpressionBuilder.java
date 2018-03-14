@@ -15,7 +15,7 @@ import com.vero.compiler.scan.expression.*;
 
 public class RegularExpressionBuilder
 {
-    public static RegularExpression Symbol(char c)
+    public  RegularExpression Symbol(char c)
     {
         return new SymbolExpression(RegularExpressionType.Symbol, c);
     }
@@ -46,17 +46,17 @@ public class RegularExpressionBuilder
             expression2);
     }
 
-    public static RegularExpression Literal(String literal)
+    public RegularExpression Literal(String literal)
     {
         return new StringLiteralExpression(RegularExpressionType.StringLiteral, literal);
     }
 
-    public static RegularExpression CharSet(List<Character> charSet)
+    public RegularExpression CharSet(List<Character> charSet)
     {
         return new AlternationCharSetExpression(RegularExpressionType.AlternationCharSet, charSet);
     }
 
-    public static RegularExpression Empty()
+    public RegularExpression Empty()
     {
         return new EmptyExpression(RegularExpressionType.Empty);
     }
@@ -73,7 +73,7 @@ public class RegularExpressionBuilder
         return Union(base, Empty());
     }
 
-    public static RegularExpression Range(Character min, Character max)
+    public RegularExpression Range(Character min, Character max)
     {
         List<Character> rangeCharSet = new ArrayList<>();
         for (char c = min; c <= max; c++ )

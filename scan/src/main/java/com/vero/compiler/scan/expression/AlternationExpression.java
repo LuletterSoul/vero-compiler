@@ -37,19 +37,10 @@ public class AlternationExpression extends RegularExpression
         this.expression2 = expression2;
     }
 
-    public AlternationExpression(RegularExpressionType expressionType,
-                                 RegularExpressionConverter regularExpressionConverter,
-                                 RegularExpression expression1, RegularExpression expression2)
-    {
-        super(expressionType, regularExpressionConverter);
-        this.expression1 = expression1;
-        this.expression2 = expression2;
-    }
-
     @Override
-    public NFAModel accept()
+    public NFAModel accept(RegularExpressionConverter converter)
     {
-        return regularExpressionConverter.convertAlternation(this);
+        return converter.convertAlternation(this);
     }
 
     @Override

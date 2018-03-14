@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.vero.compiler.scan.compress.CompactCharSetManager;
+import com.vero.compiler.scan.exception.TokenDefinitionsNotFoundException;
 import com.vero.compiler.scan.expression.RegularExpression;
 import com.vero.compiler.scan.expression.StringLiteralExpression;
 import com.vero.compiler.scan.token.Token;
@@ -32,6 +33,8 @@ public class Lexicon
     private List<Lexer> lexerStates;
 
     private List<TokenInfo> tokenList;
+
+    private CompactCharSetManager compactCharSetManager;
 
     public Lexicon()
     {
@@ -88,6 +91,12 @@ public class Lexicon
     public CompactCharSetManager createCompactCharSetManager()
     {
         List<TokenInfo> tokenInfos = getTokenList();
+
+        if (tokenInfos.isEmpty())
+        {
+            throw new TokenDefinitionsNotFoundException(
+                "Current lexcion context's token info is empty.");
+        }
 
         // 可以被压缩的字符集
         HashSet<Character> compressibleCharSet = new HashSet<>();
@@ -146,7 +155,18 @@ public class Lexicon
                 compactClassTable[cs] = index;
             }
         });
-        return new CompactCharSetManager(compactClassTable, compactCharIndex.get());
+        this.compactCharSetManager = new CompactCharSetManager(compactClassTable,
+            compactCharIndex.get());
+        return this.compactCharSetManager;
+    }
+
+    public CompactCharSetManager getCompactCharSetManager()
+    {
+        if (this.compactCharSetManager == null)
+        {
+            return createCompactCharSetManager();
+        }
+        return compactCharSetManager;
     }
 
     // public ScannerInfo createScannerInfo()
@@ -159,4 +179,10 @@ public class Lexicon
     // tokenList.size());
     // return null;
     // }
+
+    @Override
+    public String toString()
+    {
+        return "Lexicon{" + "tokenList=" + tokenList + '}';
+    }
 }

@@ -22,7 +22,9 @@ public class NFAState extends State
     private Integer tokenIndex;
 
     public NFAState()
-    {}
+    {
+        outEdges = new ArrayList<>();
+    }
 
     public NFAState(Integer tokenIndex, Edge targetEdge)
     {
@@ -38,5 +40,11 @@ public class NFAState extends State
     public void addEdge(NFAEdge edge)
     {
         outEdges.add(edge);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "NFAState{" + "outEdges=" + outEdges + ", tokenIndex=" + tokenIndex + '}';
     }
 }

@@ -35,18 +35,10 @@ public class KleeneStarExpression extends RegularExpression
         this.innerExpression = innerExpression;
     }
 
-    public KleeneStarExpression(RegularExpressionType expressionType,
-                                RegularExpressionConverter regularExpressionConverter,
-                                RegularExpression innerExpression)
-    {
-        super(expressionType, regularExpressionConverter);
-        this.innerExpression = innerExpression;
-    }
-
     @Override
-    public NFAModel accept()
+    public NFAModel accept(RegularExpressionConverter converter)
     {
-        return regularExpressionConverter.convertKleeneStar(this);
+        return converter.convertKleeneStar(this);
     }
 
     @Override
@@ -60,9 +52,10 @@ public class KleeneStarExpression extends RegularExpression
     {
         return getInnerExpression().getCompressibleCharSets();
     }
+
     @Override
     public String toString()
     {
-        return '(' + getInnerExpression().toString() + ')';
+        return '(' + getInnerExpression().toString() + ")*";
     }
 }

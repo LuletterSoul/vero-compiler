@@ -1,8 +1,11 @@
 package com.vero.compiler.scan.converter;
 
 
-import com.vero.compiler.scan.expression.*;
+import com.vero.compiler.scan.compress.CompactCharSetManager;
+import com.vero.compiler.scan.expression.RegularExpression;
 import com.vero.compiler.scan.generator.NFAModel;
+
+import lombok.Getter;
 
 
 /**
@@ -11,56 +14,24 @@ import com.vero.compiler.scan.generator.NFAModel;
  * @since vero-compiler
  */
 
+@Getter
 public abstract class RegularExpressionConverter implements ExpressionConverter<NFAModel>
 {
 
+    protected CompactCharSetManager compactCharSetManager;
+
+    public RegularExpressionConverter(CompactCharSetManager compactCharSetManager)
+    {
+        this.compactCharSetManager = compactCharSetManager;
+    }
+
     public NFAModel convert(RegularExpression expression)
     {
-        if (expression == null) {
+        if (expression == null)
+        {
             return null;
         }
-        return expression.accept();
-    }
-
-    @Override
-    public NFAModel convertAlternation(AlternationExpression exp)
-    {
-        return null;
-    }
-
-    @Override
-    public NFAModel convertSymbol(SymbolExpression exp)
-    {
-        return null;
-    }
-
-    @Override
-    public NFAModel convertEmpty(EmptyExpression exp)
-    {
-        return null;
-    }
-
-    @Override
-    public NFAModel convertConcatenation(ConcatenationExpression exp)
-    {
-        return null;
-    }
-
-    @Override
-    public NFAModel convertAlternationCharSet(AlternationCharSetExpression exp)
-    {
-        return null;
-    }
-
-    @Override
-    public NFAModel convertStringLiteral(StringLiteralExpression exp)
-    {
-        return null;
-    }
-
-    @Override
-    public NFAModel convertKleeneStar(KleeneStarExpression exp)
-    {
-        return null;
+        // 含递归
+        return expression.accept(this);
     }
 }

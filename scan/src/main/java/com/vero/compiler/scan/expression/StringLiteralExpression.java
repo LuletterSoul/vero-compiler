@@ -24,29 +24,16 @@ public class StringLiteralExpression extends RegularExpression
 {
     private String literal;
 
-    public StringLiteralExpression(RegularExpressionType expressionType)
-    {
-        super(expressionType);
-    }
-
     public StringLiteralExpression(RegularExpressionType expressionType, String literal)
     {
         super(expressionType);
         this.literal = literal;
     }
 
-    public StringLiteralExpression(RegularExpressionType expressionType,
-                                   RegularExpressionConverter regularExpressionConverter,
-                                   String literal)
-    {
-        super(expressionType, regularExpressionConverter);
-        this.literal = literal;
-    }
-
     @Override
-    public NFAModel accept()
+    public NFAModel accept(RegularExpressionConverter converter)
     {
-        return null;
+        return converter.convertStringLiteral(this);
     }
 
     @Override

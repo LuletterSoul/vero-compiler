@@ -22,8 +22,6 @@ public abstract class State
         this.index = -1;
     }
 
-
-
     public State(Integer index, Edge targetEdge) {
         this.index = index;
         this.targetEdge = targetEdge;

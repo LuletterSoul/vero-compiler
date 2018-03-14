@@ -1,6 +1,7 @@
 package com.vero.compiler.scan.expression;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -35,31 +36,33 @@ public class ConcatenationExpression extends RegularExpression
         this.right = right;
     }
 
-    public ConcatenationExpression(RegularExpressionType expressionType,
-                                   RegularExpressionConverter regularExpressionConverter,
-                                   RegularExpression left, RegularExpression right)
-    {
-        super(expressionType, regularExpressionConverter);
-        this.left = left;
-        this.right = right;
-    }
-
     @Override
-    public NFAModel accept()
+    public NFAModel accept(RegularExpressionConverter converter)
     {
-        return regularExpressionConverter.convertConcatenation(this);
+        return converter.convertConcatenation(this);
     }
 
     @Override
     public HashSet<Character> getUnCompressibleCharSet()
     {
-        return null;
+        HashSet<Character> exp1Clone = new HashSet<>(getLeft().getUnCompressibleCharSet());
+
+        HashSet<Character> exp2Clone = new HashSet<>(getRight().getUnCompressibleCharSet());
+
+        exp1Clone.addAll(exp2Clone);
+
+        return exp2Clone;
     }
 
     @Override
     public List<HashSet> getCompressibleCharSets()
     {
-        return null;
+        List<HashSet> exp1Clone = new ArrayList<>(getLeft().getCompressibleCharSets());
+
+        List<HashSet> exp2Clone = new ArrayList<>(getRight().getCompressibleCharSets());
+
+        exp1Clone.addAll(exp2Clone);
+        return exp1Clone;
     }
 
     @Override
