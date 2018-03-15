@@ -22,6 +22,6 @@ public class NFAEdge extends Edge
     @Override
     public String toString()
     {
-        return "NFAEdge{" + "symbol=" + symbol + ", targetState=" + targetState + '}';
+        return "NFAEdge{" + "symbol=" + symbol + ", targetState=" + targetState.getIndex() + '}';
     }
 }

@@ -215,6 +215,7 @@ public class DFAModel
             throw new NFAStartIndexException("Nfa start index could not be less zero.");
         }
         // 加入到ε-closure 的闭包子集进行初始化
+        preState1.setIndex(nfaStartIndex);
         preState1.getNfaStateIndexSet().add(nfaStartIndex);
         addDFAState(computeClosure(preState1));
         Integer p = 1, j = 0;
@@ -306,7 +307,7 @@ public class DFAModel
      */
     private DFAState move(DFAState start, Integer equivalenceClassIndex)
     {
-        DFAState result = new DFAState();
+        DFAState finalResult = deepCloneDFAState(start);
         List<NFAState> dfaStates = getNfaModel().getStates();
         start.getNfaStateIndexSet().forEach(s -> {
             NFAState nfaState = dfaStates.get(s);
@@ -323,10 +324,23 @@ public class DFAModel
                             ("Target lexerState index could not be null"));
                     }
                     // 加入闭包集合,即求得move()
-                    result.getNfaStateIndexSet().add(targetIndex);
+                    finalResult.getNfaStateIndexSet().add(targetIndex);
                 }
             }
         });
+        return finalResult;
+    }
+
+    private DFAState deepCloneDFAState(DFAState start) {
+        DFAState result = new DFAState();
+        try
+        {
+            result = (DFAState)start.clone();
+        }
+        catch (CloneNotSupportedException e)
+        {
+            e.printStackTrace();
+        }
         return result;
     }
 
@@ -343,18 +357,24 @@ public class DFAModel
         // 准备队列
         Queue<Integer> currentStateIndexQueue = new LinkedList<>();
         currentStateIndexQueue.addAll(closure.getNfaStateIndexSet());
+        boolean[] marked = new boolean[nfaStates.size()];
+        marked[state.getIndex()] = true;
         // 广度优先遍历求最大空符可到达的NFA状态点
         while (!currentStateIndexQueue.isEmpty())
         {
             // 取出一个NFA的状态点下标
             NFAState currentNFAState = nfaStates.get(currentStateIndexQueue.poll());
             List<NFAEdge> outEdges = currentNFAState.getOutEdges();
-            outEdges.forEach(e -> {
+            outEdges.forEach((NFAEdge e) -> {
                 // 如果点当前边是空符的指向边
                 if (e.isEmpty())
                 {
                     NFAState targetState = (NFAState)e.getTargetState();
                     Integer targetIndex = targetState.getIndex();
+                    if (marked[targetIndex])
+                    {
+                        return;
+                    }
                     if (targetIndex < 0)
                     {
                         throw new TargetIndexException("Target index could not be null.");
@@ -388,6 +408,12 @@ public class DFAModel
         // });
         //
         // }
+        if (log.isDebugEnabled())
+        {
+            log.debug("Pre closure index set:{} <----------->After {}",
+                Arrays.toString(state.getNfaStateIndexSet().toArray()),
+                Arrays.toString(closure.getNfaStateIndexSet().toArray()));
+        }
         return closure;
     }
 

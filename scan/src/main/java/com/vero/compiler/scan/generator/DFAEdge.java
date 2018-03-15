@@ -17,4 +17,9 @@ public class DFAEdge extends Edge {
     public DFAEdge(State targetState) {
         super(targetState);
     }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
 }

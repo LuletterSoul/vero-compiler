@@ -121,7 +121,11 @@ public class Lexicon
         Map<HashSet<Integer>, Integer> compactClassDict = new HashMap<>();
         AtomicReference<Integer> compactCharIndex = new AtomicReference<>(1);
         // 字符到等价类的映射表
-        Integer[] compactClassTable = new Integer[65536];
+        Integer[] compactClassTable = new Integer[Character.MAX_VALUE + 1];
+        for (int i = 0; i < compactClassTable.length; i++ )
+        {
+            compactClassTable[i] = 0;
+        }
         unCompressibleCharSet.forEach(ucs -> {
             Integer index = compactCharIndex.getAndSet(compactCharIndex.get() + 1);
             // 将该字符的数值映射到新的等价类下标index

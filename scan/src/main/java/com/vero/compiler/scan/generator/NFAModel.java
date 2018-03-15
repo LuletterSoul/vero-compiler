@@ -33,9 +33,9 @@ public class NFAModel
         state.setIndex(getStates().size() - 1);
     }
 
-    public void addStates(List<NFAState> states)
+    public void addStates(List<NFAState> newStates)
     {
-        for (NFAState state : this.states) {
+        for (NFAState state : newStates) {
             addState(state);
         }
     }

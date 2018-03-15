@@ -45,6 +45,6 @@ public class NFAState extends State
     @Override
     public String toString()
     {
-        return "NFAState{" + "outEdges=" + outEdges + ", tokenIndex=" + tokenIndex + '}';
+        return "NFAState{" + "outEdges=" + outEdges.toString()+ "}";
     }
 }

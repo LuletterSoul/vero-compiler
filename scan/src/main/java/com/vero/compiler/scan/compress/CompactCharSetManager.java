@@ -1,9 +1,10 @@
 package com.vero.compiler.scan.compress;
 
 
-import lombok.Data;
-
 import java.util.HashSet;
+
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -13,6 +14,7 @@ import java.util.HashSet;
  */
 
 @Data
+@Slf4j
 public class CompactCharSetManager
 {
     /**
@@ -22,21 +24,22 @@ public class CompactCharSetManager
 
     /**
      * 等价类的最小下标
-     *
      */
     private int minClassIndex = 1;
 
     private Integer[] compactCharTable;
 
-
-    public CompactCharSetManager(Integer[] compactCharTable,int maxClassIndex) {
+    public CompactCharSetManager(Integer[] compactCharTable, int maxClassIndex)
+    {
         this.maxClassIndex = maxClassIndex;
         this.compactCharTable = compactCharTable;
     }
 
     /***
      * 获取该字符对应的等价类
-     * @param character 字符
+     * 
+     * @param character
+     *            字符
      * @return 等价类
      */
     public Integer getCompactClass(Character character)
@@ -46,30 +49,33 @@ public class CompactCharSetManager
 
     /**
      * 判断该字符在等价类表中是否存在映射
-     * @param character 字符
+     * 
+     * @param character
+     *            字符
      * @return 是否存在
      */
-    public boolean hasCompactClass(Character character) {
+    public boolean hasCompactClass(Character character)
+    {
         return getCompactClass(character) >= getMinClassIndex();
     }
 
     /**
-     * 等价类到字符集的映射
-     * 即反向求出等价类中含有所有字符集
+     * 等价类到字符集的映射 即反向求出等价类中含有所有字符集
+     * 
      * @return 等价类到字符集的映射集
      */
     public HashSet[] createCompactCharMapTable()
     {
-        HashSet[] result = new HashSet[getMaxClassIndex()+1];
-        for (int i = 0; i <= getMaxClassIndex(); i++)
+        HashSet[] result = new HashSet[getMaxClassIndex() + 1];
+        for (int i = 0; i <= getMaxClassIndex(); i++ )
         {
             result[i] = new HashSet<Character>();
         }
 
-        for (int i = Character.MIN_VALUE; i <= Character.MAX_VALUE; i++)
+        for (int i = Character.MIN_VALUE; i <= Character.MAX_VALUE; i++ )
         {
             int index = getCompactCharTable()[i];
-            result[index].add((char) i);
+            result[index].add((char)i);
         }
         return result;
     }
