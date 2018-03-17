@@ -2,6 +2,7 @@ package com.vero.compiler.scan.generator;
 
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -28,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public class DFAModel
 {
-    private ArrayList<Integer>[] acceptTables;
+    private ArrayList[] acceptTables;
 
     private List<DFAState> dfaStates = new ArrayList<>();
 
@@ -59,7 +60,7 @@ public class DFAModel
         this.acceptTables = new ArrayList[stateCount];
         for (int i = 0; i < stateCount; i++ )
         {
-            acceptTables[i] = new ArrayList<Integer>();
+            acceptTables[i] = new ArrayList();
         }
         this.stopState = new DFAState();
         addDFAState(stopState);
@@ -116,7 +117,7 @@ public class DFAModel
     {
         getDfaStates().add(state);
         state.setIndex(getDfaStates().size() - 1);
-        recordStateIndexMappingToToken(state);
+//        recordStateIndexMappingToToken(state);
     }
 
     /**
@@ -134,7 +135,7 @@ public class DFAModel
         List<TokenInfo> tokens = getLexicon().getTokenList();
         List<Lexer> lexerStates = getLexicon().getLexerStates();
         HashSet<Integer> nfaStateIndexSet = state.getNfaStateIndexSet();
-        List<TokenInfo> candidates = new ArrayList<>();
+        List<TokenInfo> candidates = new LinkedList<>();
         for (int i = 0; i < nfaStateIndexSet.size(); i++ )
         {
             Integer tokenIndex = getNfaModel().getStates().get(i).getTokenIndex();
@@ -372,46 +373,70 @@ public class DFAModel
         List<NFAState> nfaStates = getNfaModel().getStates();
         // 将当前DFA状态点等价的NFA状态点加入到闭包中去
         closure.getNfaStateIndexSet().addAll(state.getNfaStateIndexSet());
-        // AtomicBoolean changed = new AtomicBoolean(false);
+        AtomicBoolean changed = new AtomicBoolean(true);
         // 准备队列
-        Queue<Integer> currentStateIndexQueue = new LinkedList<>();
-        currentStateIndexQueue.addAll(closure.getNfaStateIndexSet());
-        boolean[] marked = new boolean[nfaStates.size()];
-        for (int i = 0; i < marked.length; i++ )
+        while (changed.get())
         {
-            marked[i] = false;
-        }
-        for (int i = 0; i < marked.length; i++ )
-        {
-            closure.getNfaStateIndexSet().forEach(c -> marked[c] = true);
-        }
-        // 广度优先遍历求最大空符可到达的NFA状态点
-        while (!currentStateIndexQueue.isEmpty())
-        {
-            // 取出一个NFA的状态点下标
-            NFAState currentNFAState = nfaStates.get(currentStateIndexQueue.poll());
-            List<NFAEdge> outEdges = currentNFAState.getOutEdges();
-            outEdges.forEach((NFAEdge e) -> {
-                // 如果点当前边是空符的指向边
-                if (e.isEmpty())
-                {
-                    NFAState targetState = (NFAState)e.getTargetState();
-                    Integer targetIndex = targetState.getIndex();
-                    if (!marked[targetIndex])
+            changed.set(false);
+            Set<Integer> lastStateSet = new HashSet<>(closure.getNfaStateIndexSet());
+            for (Integer nfaStateIndex : lastStateSet)
+            {
+                NFAState nfaState = nfaStates.get(nfaStateIndex);
+                List<NFAEdge> outEdges = nfaState.getOutEdges();
+                outEdges.forEach(edge -> {
+                    if (edge.isEmpty())
                     {
-                        if (targetIndex < 0)
-                        {
-                            throw new TargetIndexException("Target index could not be null.");
-                        }
-                        // 加入到闭包子集
-                        closure.getNfaStateIndexSet().add(targetIndex);
-                        // 加入到遍历队列
-                        currentStateIndexQueue.add(targetIndex);
-                        marked[targetIndex] = true;
+                        int targetIndex = edge.getTargetState().getIndex();
+                        changed.set(
+                            closure.getNfaStateIndexSet().add(targetIndex) || changed.get());
                     }
-                }
-            });
+                });
+            }
         }
+        // Queue<Integer> currentStateIndexQueue = new LinkedList<>();
+        // currentStateIndexQueue.addAll(closure.getNfaStateIndexSet());
+        // boolean[] marked = new boolean[nfaStates.size()];
+        // for (int i = 0; i < marked.length; i++ )
+        // {
+        // marked[i] = false;
+        // }
+        // for (int i = 0; i < marked.length; i++ )
+        // {
+        // closure.getNfaStateIndexSet().forEach(c -> marked[c] = true);
+        // }
+        // // 广度优先遍历求最大空符可到达的NFA状态点
+        // while (!currentStateIndexQueue.isEmpty())
+        // {
+        // // 取出一个NFA的状态点下标
+        // NFAState currentNFAState = nfaStates.get(currentStateIndexQueue.poll());
+        // List<NFAEdge> outEdges = currentNFAState.getOutEdges();
+        // outEdges.forEach((NFAEdge e) -> {
+        // // 如果点当前边是空符的指向边
+        // if (e.isEmpty())
+        // {
+        // NFAState targetState = (NFAState)e.getTargetState();
+        // Integer targetIndex = targetState.getIndex();
+        // log.debug("Access target state [{}]", targetIndex);
+        // if (!marked[targetIndex])
+        // {
+        // if (targetIndex < 0)
+        // {
+        // throw new TargetIndexException("Target index could not be null.");
+        // }
+        // // 加入到闭包子集
+        // closure.getNfaStateIndexSet().add(targetIndex);
+        // // 加入到遍历队列
+        // currentStateIndexQueue.add(targetIndex);
+        // marked[targetIndex] = true;
+        // log.debug("Add target index [{}] to the closure", targetIndex);
+        // }
+        // else
+        // {
+        // log.debug("Current target index [{}] accessed.", targetIndex);
+        // }
+        // }
+        // });
+        // }
         if (log.isDebugEnabled())
         {
             log.debug("Pre closure index set:{} <----------->After {}",

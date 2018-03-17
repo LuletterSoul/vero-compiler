@@ -34,7 +34,7 @@ public class NFAConverter extends RegularExpressionConverter
         NFAState tail = new NFAState();
 
         head.addEdge(nfaModel1.getEntryEdge());
-        head.addEdge(nfaModel1.getEntryEdge());
+        head.addEdge(nfaModel2.getEntryEdge());
 
         nfaModel1.getTailState().addEmptyEdgeTo(tail);
         nfaModel2.getTailState().addEmptyEdgeTo(tail);

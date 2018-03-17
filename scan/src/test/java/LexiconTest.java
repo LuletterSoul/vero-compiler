@@ -32,7 +32,7 @@ public class LexiconTest
         Token ID = global.defineToken(
             Range('a', 'z').Concat(Range('a', 'z').Union(Range('0', '9')).Many()));
 
-        Token NUM = global.defineToken(Range('0', '9').Many1());
+//        Token NUM = global.defineToken(Range('0', '9').Many1());
 
 //        Token IF = keywords.defineToken(Literal("if"));
 //

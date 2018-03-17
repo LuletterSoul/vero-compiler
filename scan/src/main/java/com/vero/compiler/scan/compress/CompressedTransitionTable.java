@@ -87,16 +87,14 @@ public class CompressedTransitionTable
             }
         }
         for(int i =0; i <realCompressedTransitionTable.length;i++) {
+            Integer[] newColumn = new Integer[transitionColumnTable.size()];
             for (int dfaClass = 0; dfaClass < transitionColumnTable.size(); dfaClass++ )
             {
                 Integer[] column = transitionColumnTable.get(dfaClass);
-                //将未压缩的dfa下标映射到压缩后的下标
-                for (Integer internalUnCompressedDfaIndex : column) {
-                    realCompressedTransitionTable[internalUnCompressedDfaIndex][dfaClass] = internalUnCompressedDfaIndex;
-                }
+                newColumn[dfaClass] = column[i];
             }
+            realCompressedTransitionTable[i] = newColumn;
         }
-
     }
 
     /**

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -14,6 +15,7 @@ import lombok.Data;
  * @since vero-compiler
  */
 @Data
+@Slf4j
 public class NFAModel
 {
     private List<NFAState> states;

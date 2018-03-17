@@ -133,7 +133,10 @@ public class Lexicon
         });
         log.debug("Current class table from un-compressible char set:",
             Arrays.toString(compactClassTable));
-        for (Character cs : compressibleCharSet) {
+        List<Character> compressibleCharList = new ArrayList<>(compressibleCharSet);
+        compressibleCharList.sort(Comparator.comparingInt(o -> o));
+        for (Character cs : compressibleCharList)
+        {
             // 遍历所以正则表达式的字符集,搜索每个字符集中可进行压缩字符构建等价类
             HashSet<Integer> setOfCharset = new HashSet<>();
             for (int i = 0; i < compressibleCharSets.size(); i++ )
