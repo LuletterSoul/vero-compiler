@@ -23,7 +23,7 @@ public class NFAModel
     private NFAEdge entryEdge;
 
     public NFAModel() {
-        states = new CopyOnWriteArrayList<>();
+        states = new ArrayList<>();
     }
 
     public void addState(NFAState state)

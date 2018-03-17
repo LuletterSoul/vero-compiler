@@ -29,6 +29,8 @@ public class DFAState extends State {
 
     private List<DFAEdge> outEdges;
 
+    private Boolean moved = false;
+
     public DFAState() {
         outEdges = new ArrayList<DFAEdge>();
         nfaStateIndexSet = new HashSet<Integer>();

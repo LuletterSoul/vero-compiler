@@ -105,15 +105,15 @@ public class NFAConverter extends RegularExpressionConverter
         NFAModel charSetNfa = new NFAModel();
 
         charSetNfa.addState(head);
-        HashSet<Integer> classsSet = new HashSet<>();
-        exp.getCharacters().forEach(c -> {
+        HashSet<Integer> classSet = new HashSet<>();
+        for (Character c : exp.getCharacters()) {
             Integer classIndex = getCompactCharSetManager().getCompactClass(c);
-            if (classsSet.add(classIndex))
+            if (classSet.add(classIndex))
             {
                 NFAEdge symbolEdge = new NFAEdge(classIndex, tail);
                 head.addEdge(symbolEdge);
             }
-        });
+        }
         charSetNfa.addState(tail);
         charSetNfa.setEntryEdge(new NFAEdge(head));
         charSetNfa.setTailState(tail);

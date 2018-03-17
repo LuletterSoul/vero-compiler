@@ -2,8 +2,6 @@ package com.vero.compiler.scan.compress;
 
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.vero.compiler.scan.generator.DFAEdge;
 import com.vero.compiler.scan.generator.DFAModel;
@@ -28,7 +26,7 @@ public class CompressedTransitionTable
 
     private CompactCharSetManager compactCharSetManager;
 
-    private Integer[][] compressedTransitionTable;
+    private Integer[][] realCompressedTransitionTable;
 
     private List<DFAState> dfaStates;
 
@@ -49,7 +47,10 @@ public class CompressedTransitionTable
 
         this.compactCharSetManager = dfaModel.getCompactCharSetManager();
 
-        this.compressedTransitionTable = new Integer[dfaStates.size()][];
+        this.realCompressedTransitionTable = new Integer[dfaStates.size()][];
+
+        this.compress();
+
     }
 
     public static CompressedTransitionTable compress(DFAModel dfa)
@@ -58,9 +59,7 @@ public class CompressedTransitionTable
         {
             return null;
         }
-        CompressedTransitionTable compressor = new CompressedTransitionTable(dfa);
-        compressor.compress();
-        return compressor;
+        return new CompressedTransitionTable(dfa);
     }
 
     private void compress()
@@ -68,10 +67,36 @@ public class CompressedTransitionTable
         Map<Integer, List<Integer>> classIndexesDic = new HashMap<>();
         List<Integer[]> transitionColumnTable = new ArrayList<>();
         this.composeEdgesByClassIndex(classIndexesDic);
-        // 获取等价类到字符的映射集
+        // NFA压缩后的等价类集
         HashSet[] compactCharMapTable = getCompactCharSetManager().createCompactCharMapTable();
-        buildChars2EquivalenceClass(classIndexesDic, transitionColumnTable, compactCharMapTable);
+        generateChars2DFAEquivalenceClass(classIndexesDic, transitionColumnTable,
+            compactCharMapTable);
+        // 将所有非法字符投影到到DFA非法下标
         buildInValidCharsNavigation(transitionColumnTable, compactCharMapTable[0]);
+        generationRealCompressedTable(transitionColumnTable);
+    }
+
+    private void generationRealCompressedTable(List<Integer[]> transitionColumnTable)
+    {
+        //初始化二位矩陣
+        for (int i = 0; i < realCompressedTransitionTable.length; i++ )
+        {
+            realCompressedTransitionTable[i] = new Integer[transitionColumnTable.size()];
+            for (int j = 0; j < realCompressedTransitionTable[i].length; j++) {
+                realCompressedTransitionTable[i][j] = 0;
+            }
+        }
+        for(int i =0; i <realCompressedTransitionTable.length;i++) {
+            for (int dfaClass = 0; dfaClass < transitionColumnTable.size(); dfaClass++ )
+            {
+                Integer[] column = transitionColumnTable.get(dfaClass);
+                //将未压缩的dfa下标映射到压缩后的下标
+                for (Integer internalUnCompressedDfaIndex : column) {
+                    realCompressedTransitionTable[internalUnCompressedDfaIndex][dfaClass] = internalUnCompressedDfaIndex;
+                }
+            }
+        }
+
     }
 
     /**
@@ -85,7 +110,7 @@ public class CompressedTransitionTable
         for (int i = 0; i < getDfaStates().size(); i++ )
         {
             List<DFAEdge> dfaEdges = getDfaStates().get(i).getOutEdges();
-            // 抽取每个等价类指向所有目标状态
+            // 抽取每个NFA等价类指向的所有目标状态下标
             for (DFAEdge edge : dfaEdges)
             {
                 List<Integer> dfaStateIndexes = classIndexesDic.computeIfAbsent(edge.getSymbol(),
@@ -95,9 +120,9 @@ public class CompressedTransitionTable
         }
     }
 
-    private void buildChars2EquivalenceClass(Map<Integer, List<Integer>> classIndexesDic,
-                                             List<Integer[]> transitionColumnTable,
-                                             HashSet[] compactCharMapTable)
+    private void generateChars2DFAEquivalenceClass(Map<Integer, List<Integer>> classIndexesDic,
+                                                   List<Integer[]> transitionColumnTable,
+                                                   HashSet[] compactCharMapTable)
     {
         // 等价类的最大下标
         Integer minClassIndex = getCompactCharSetManager().getMinClassIndex();
@@ -106,30 +131,34 @@ public class CompressedTransitionTable
         {
             // 选出指向当前等价类的所有字符集
             Integer[] columnSequence = columnSequenceListToArray(classIndexesDic, i);
-            Set<Integer[]> mappingStateIndexes = getStateSetDict().keySet();
+            Set<Integer[]> nfaCompressedIndexSet = getStateSetDict().keySet();
+            Integer signedNFAClass = containsDFAClass2NFAClassMapping(columnSequence,
+                nfaCompressedIndexSet);
             // 已经存在映射
-            Integer signedClass = containsCharMapping(columnSequence, mappingStateIndexes);
-            if (signedClass != null)
+            if (signedNFAClass != null)
             {
-                mapCharToEquivalenceClassIndex(compactCharMapTable[i], signedClass);
+                mapCharToDFAEquivalenceClassIndex(compactCharMapTable[i], signedNFAClass);
             }
             else
             {
+                // 新增一个DFA等价类下标
                 Integer nextIndex = transitionColumnTable.size();
                 transitionColumnTable.add(columnSequence);
                 getStateSetDict().put(columnSequence, nextIndex);
-                mapCharToEquivalenceClassIndex(compactCharMapTable[i], nextIndex);
+                mapCharToDFAEquivalenceClassIndex(compactCharMapTable[i], nextIndex);
             }
         }
     }
 
     private Integer[] columnSequenceListToArray(Map<Integer, List<Integer>> classIndexesDic, int i)
     {
-        List<Integer> columnSequenceList = classIndexesDic.get(i);
-        AtomicInteger index = new AtomicInteger();
-        Integer[] columnSequence = new Integer[columnSequenceList.size()];
-        columnSequenceList.parallelStream().forEach(
-            c -> columnSequence[index.getAndIncrement()] = c);
+        List<Integer> columnSequenceSet = classIndexesDic.get(i);
+        Integer[] columnSequence = new Integer[columnSequenceSet.size()];
+        Iterator<Integer> iterator = columnSequenceSet.iterator();
+        int index =0;
+        while (iterator.hasNext()) {
+            columnSequence[index++] = iterator.next();
+        }
         return columnSequence;
     }
 
@@ -138,49 +167,55 @@ public class CompressedTransitionTable
     {
 
         Integer[] invalidColumn = new Integer[getDfaStates().size()];
+        for (int i = 0; i < invalidColumn.length; i++) {
+            invalidColumn[i] = 0;
+        }
         Integer invalidIndex = transitionColumnTable.size();
-
         transitionColumnTable.add(invalidColumn);
-
-        mapCharToEquivalenceClassIndex(hashSet, invalidIndex);
+        mapCharToDFAEquivalenceClassIndex(hashSet, invalidIndex);
     }
 
-    private void mapCharToEquivalenceClassIndex(HashSet hashSet, Integer index)
+    /**
+     * 将字符映射到DFA等价类
+     * 
+     * @param charSet
+     * @param index
+     */
+    private void mapCharToDFAEquivalenceClassIndex(HashSet charSet, Integer index)
     {
-        hashSet.forEach(c ->{
-            char c2 = (char) c;
-            getCharClassTable()[(int) c2] = index;
+        charSet.forEach(c -> {
+            char c2 = (char)c;
+            getCharClassTable()[(int)c2] = index;
         });
     }
 
-    private Integer containsCharMapping(Integer[] columnSequence,
-                                        Set<Integer[]> mappingStateIndexes)
+    private Integer containsDFAClass2NFAClassMapping(Integer[] columnSequence,
+                                                     Set<Integer[]> nfaCompressedIndexSet)
     {
         if (columnSequence == null)
         {
             return null;
         }
-        AtomicBoolean isExist = new AtomicBoolean(true);
-        Integer[] target = null;
-        for (Integer[] mappingStateIndex : mappingStateIndexes)
+        Integer[] target;
+        for (Integer[] nfaIndex : nfaCompressedIndexSet)
         {
-            target = mappingStateIndex;
-            for (Integer stateIndex : mappingStateIndex)
+            target = nfaIndex;
+            Integer targetTime = 0;
+            for (Integer stateIndex : nfaIndex)
             {
                 for (Integer column : columnSequence)
                 {
-                    if (!column.equals(stateIndex))
+                    if (column.equals(stateIndex))
                     {
-                        isExist.set(false);
-                        break;
+                        ++targetTime;
                     }
                 }
             }
+            if (targetTime.equals(columnSequence.length))
+            {
+                getStateSetDict().get(target);
+            }
         }
-        if (!isExist.get())
-        {
-            return null;
-        }
-        return getStateSetDict().get(target);
+        return null;
     }
 }

@@ -19,7 +19,7 @@ public class NFAState extends State
 
     private List<NFAEdge> outEdges;
 
-    private Integer tokenIndex;
+    private Integer tokenIndex = 0;
 
     public NFAState()
     {
@@ -45,6 +45,6 @@ public class NFAState extends State
     @Override
     public String toString()
     {
-        return "NFAState{" + "outEdges=" + outEdges.toString()+ "}";
+        return "NFAState{" + "outEdges=" + outEdges.toString() + "}";
     }
 }

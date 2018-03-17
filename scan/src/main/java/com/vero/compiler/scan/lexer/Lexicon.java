@@ -95,7 +95,7 @@ public class Lexicon
         if (tokenInfos.isEmpty())
         {
             throw new TokenDefinitionsNotFoundException(
-                "Current lexcion context's token info is empty.");
+                "Current lexcion context's token info is empty.Required base definition about lexer.");
         }
 
         // 可以被压缩的字符集
@@ -111,10 +111,6 @@ public class Lexicon
             unCompressibleCharSet.addAll(ucs);
         });
         compressibleCharSets.forEach(compressibleCharSet::addAll);
-        if (log.isDebugEnabled())
-        {
-            log.debug("Compressible set elements contains ", compressibleCharSet.toString());
-        }
         // 排除所有不可压缩的字符集
         compressibleCharSet.removeAll(unCompressibleCharSet);
         log.debug("When remove un-compressible set:", compressibleCharSet.toString());
@@ -137,7 +133,7 @@ public class Lexicon
         });
         log.debug("Current class table from un-compressible char set:",
             Arrays.toString(compactClassTable));
-        compressibleCharSet.forEach(cs -> {
+        for (Character cs : compressibleCharSet) {
             // 遍历所以正则表达式的字符集,搜索每个字符集中可进行压缩字符构建等价类
             HashSet<Integer> setOfCharset = new HashSet<>();
             for (int i = 0; i < compressibleCharSets.size(); i++ )
@@ -149,9 +145,10 @@ public class Lexicon
                 }
             }
             // 若已经存在对应的等价类,将其映射到新信标Index 如{'a','b','c'} ——》1表示等价的状态{'a','b','c'}映射到新别名状态1
-            if (compactClassDict.containsKey(setOfCharset))
+            HashSet<Integer> target = isContainSetOfChar(compactClassDict, setOfCharset);
+            if (target != null)
             {
-                Integer index = compactClassDict.get(setOfCharset);
+                Integer index = compactClassDict.get(target);
                 compactClassTable[cs] = index;
                 log.debug("Mapping:['{}'] -------->[{}]", cs, index);
             }
@@ -160,13 +157,67 @@ public class Lexicon
             {
                 Integer index = compactCharIndex.getAndSet(compactCharIndex.get() + 1);
                 compactClassDict.put(setOfCharset, index);
+                if (log.isDebugEnabled())
+                {
+                    StringBuilder stringBuilder = new StringBuilder("[");
+                    setOfCharset.forEach(c -> stringBuilder.append(c).append(","));
+                    stringBuilder.append("]");
+                    log.debug("New char class set:", stringBuilder.toString());
+                }
                 compactClassTable[cs] = index;
                 log.debug("Mapping:['{}'] -------->[{}]", cs, index);
             }
-        });
+        }
         this.compactCharSetManager = new CompactCharSetManager(compactClassTable,
             compactCharIndex.get());
         return this.compactCharSetManager;
+    }
+
+    private HashSet<Integer> isContainSetOfChar(Map<HashSet<Integer>, Integer> compactClassDict,
+                                                HashSet<Integer> setOfCharset)
+    {
+        Set<HashSet<Integer>> compactClassSet = compactClassDict.keySet();
+        HashSet<Integer> target = null;
+        for (HashSet<Integer> compact : compactClassSet)
+        {
+            target = compact;
+            Integer targetElementTimes = 0;
+            for (Integer c : compact)
+            {
+
+                for (Integer now : setOfCharset)
+                {
+                    if (now.equals(c))
+                    {
+                        ++targetElementTimes;
+                    }
+                }
+            }
+            if (targetElementTimes.equals(setOfCharset.size()))
+            {
+                return target;
+            }
+        }
+        return null;
+    }
+
+    private boolean isContainedChar(Character cs, HashSet set)
+    {
+        boolean isContained = false;
+        for (Object object : set)
+        {
+            if (object instanceof Character)
+            {
+                Character c = (Character)object;
+                if (c.equals(cs))
+                {
+                    isContained = true;
+                    break;
+                }
+            }
+        }
+
+        return isContained;
     }
 
     public CompactCharSetManager getCompactCharSetManager()
