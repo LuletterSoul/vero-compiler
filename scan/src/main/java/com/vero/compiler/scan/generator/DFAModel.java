@@ -2,7 +2,6 @@ package com.vero.compiler.scan.generator;
 
 
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -98,6 +97,8 @@ public class DFAModel
         for (TokenInfo t : lexicon.getTokenList())
         {
             NFAModel tokenNFA = t.createFiniteAutomationModel(getNfaConverter());
+            //为所有DFA状态标记属于Token的状态
+            tokenNFA.getStates().forEach(s -> s.setTokenIndex(t.getTagIndex()));
             // 将当前Token的入口边挂载到当前的自动机的入口点
             entryState.addEdge(tokenNFA.getEntryEdge());
             // 加入状态点(d)
@@ -117,7 +118,7 @@ public class DFAModel
     {
         getDfaStates().add(state);
         state.setIndex(getDfaStates().size() - 1);
-//        recordStateIndexMappingToToken(state);
+        recordStateIndexMappingToToken(state);
     }
 
     /**
@@ -136,14 +137,15 @@ public class DFAModel
         List<Lexer> lexerStates = getLexicon().getLexerStates();
         HashSet<Integer> nfaStateIndexSet = state.getNfaStateIndexSet();
         List<TokenInfo> candidates = new LinkedList<>();
-        for (int i = 0; i < nfaStateIndexSet.size(); i++ )
-        {
-            Integer tokenIndex = getNfaModel().getStates().get(i).getTokenIndex();
+        Set<TokenInfo> unique = new HashSet<>();
+        nfaStateIndexSet.forEach(nfaIndex -> {
+            Integer tokenIndex = getNfaModel().getStates().get(nfaIndex).getTokenIndex();
             if (tokenIndex >= 0)
             {
-                candidates.add(tokens.get(tokenIndex));
+                unique.add(tokens.get(tokenIndex));
             }
-        }
+        });
+        candidates.addAll(unique);
         candidates.sort((o1, o2) -> {
             if (o1.getTagIndex() >= o2.getTagIndex())
             {

@@ -4,10 +4,13 @@ package com.vero.compiler.scan.lexer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.vero.compiler.scan.ScannerInfo;
 import com.vero.compiler.scan.compress.CompactCharSetManager;
+import com.vero.compiler.scan.compress.CompressedTransitionTable;
 import com.vero.compiler.scan.exception.TokenDefinitionsNotFoundException;
 import com.vero.compiler.scan.expression.RegularExpression;
 import com.vero.compiler.scan.expression.StringLiteralExpression;
+import com.vero.compiler.scan.generator.DFAModel;
 import com.vero.compiler.scan.token.Token;
 import com.vero.compiler.scan.token.TokenInfo;
 
@@ -65,7 +68,6 @@ public class Lexicon
         Integer index = getLexerStates().size();
         Lexer newState = new Lexer(this, index, baseLexer);
         getLexerStates().add(newState);
-        baseLexer.getChildren().add(newState);
         return newState;
     }
 
@@ -232,16 +234,12 @@ public class Lexicon
         return compactCharSetManager;
     }
 
-    // public ScannerInfo createScannerInfo()
-    // {
-    // DFAModel dfa = DFAModel.build(this);
-    // CompressedTransitionTable ctt = CompressedTransitionTable.compress(dfa);
-    //
-    // return new ScannerInfo(ctt.getCompressedTransitionTable(), ctt.getCharClassTable(),
-    // dfa.getAcceptTables(),
-    // tokenList.size());
-    // return null;
-    // }
+    public ScannerInfo createScannerInfo(DFAModel dfa)
+    {
+        CompressedTransitionTable ctt = CompressedTransitionTable.compress(dfa);
+        return new ScannerInfo(ctt.getRealCompressedTransitionTable(), ctt.getCharClassTable(),
+            dfa.getAcceptTables(), tokenList.size());
+    }
 
     @Override
     public String toString()

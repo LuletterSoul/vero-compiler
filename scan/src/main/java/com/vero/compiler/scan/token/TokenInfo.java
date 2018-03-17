@@ -1,6 +1,7 @@
 package com.vero.compiler.scan.token;
 
 
+import com.google.common.base.Objects;
 import com.vero.compiler.scan.converter.RegularExpressionConverter;
 import com.vero.compiler.scan.exception.NFAModalInValidException;
 import com.vero.compiler.scan.expression.RegularExpression;
@@ -72,7 +73,24 @@ public class TokenInfo
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return definition.toString();
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        TokenInfo tokenInfo = (TokenInfo)o;
+        return Objects.equal(tag.getIndex(), tokenInfo.tag.getIndex());
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(tag.getIndex(),lexerState.getIndex());
     }
 }

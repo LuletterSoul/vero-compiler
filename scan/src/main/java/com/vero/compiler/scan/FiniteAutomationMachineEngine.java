@@ -43,6 +43,12 @@ public class FiniteAutomationMachineEngine
         setCurrentStateIndex(nextState);
     }
 
+    public void resetAndInputString(String string)
+    {
+        this.resetMachineState();
+        this.inputString(string);
+    }
+
     public void inputString(String string)
     {
         char[] chars = string.toCharArray();
@@ -50,5 +56,10 @@ public class FiniteAutomationMachineEngine
         {
             this.input(aChar);
         }
+    }
+
+    public boolean isAtStoppedState()
+    {
+        return this.currentStateIndex == 0;
     }
 }

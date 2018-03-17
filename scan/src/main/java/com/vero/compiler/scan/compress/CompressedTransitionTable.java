@@ -78,15 +78,17 @@ public class CompressedTransitionTable
 
     private void generationRealCompressedTable(List<Integer[]> transitionColumnTable)
     {
-        //初始化二位矩陣
+        // 初始化二位矩陣
         for (int i = 0; i < realCompressedTransitionTable.length; i++ )
         {
             realCompressedTransitionTable[i] = new Integer[transitionColumnTable.size()];
-            for (int j = 0; j < realCompressedTransitionTable[i].length; j++) {
+            for (int j = 0; j < realCompressedTransitionTable[i].length; j++ )
+            {
                 realCompressedTransitionTable[i][j] = 0;
             }
         }
-        for(int i =0; i <realCompressedTransitionTable.length;i++) {
+        for (int i = 0; i < realCompressedTransitionTable.length; i++ )
+        {
             Integer[] newColumn = new Integer[transitionColumnTable.size()];
             for (int dfaClass = 0; dfaClass < transitionColumnTable.size(); dfaClass++ )
             {
@@ -153,9 +155,10 @@ public class CompressedTransitionTable
         List<Integer> columnSequenceSet = classIndexesDic.get(i);
         Integer[] columnSequence = new Integer[columnSequenceSet.size()];
         Iterator<Integer> iterator = columnSequenceSet.iterator();
-        int index =0;
-        while (iterator.hasNext()) {
-            columnSequence[index++] = iterator.next();
+        int index = 0;
+        while (iterator.hasNext())
+        {
+            columnSequence[index++ ] = iterator.next();
         }
         return columnSequence;
     }
@@ -165,7 +168,8 @@ public class CompressedTransitionTable
     {
 
         Integer[] invalidColumn = new Integer[getDfaStates().size()];
-        for (int i = 0; i < invalidColumn.length; i++) {
+        for (int i = 0; i < invalidColumn.length; i++ )
+        {
             invalidColumn[i] = 0;
         }
         Integer invalidIndex = transitionColumnTable.size();
@@ -183,6 +187,10 @@ public class CompressedTransitionTable
     {
         charSet.forEach(c -> {
             char c2 = (char)c;
+            if (c2 == 'i')
+            {
+                log.debug("iiiiiiii");
+            }
             getCharClassTable()[(int)c2] = index;
         });
     }
@@ -198,20 +206,19 @@ public class CompressedTransitionTable
         for (Integer[] nfaIndex : nfaCompressedIndexSet)
         {
             target = nfaIndex;
-            Integer targetTime = 0;
+            StringBuilder stringBuilder1 = new StringBuilder();
+            StringBuilder stringBuilder2 = new StringBuilder();
             for (Integer stateIndex : nfaIndex)
             {
-                for (Integer column : columnSequence)
-                {
-                    if (column.equals(stateIndex))
-                    {
-                        ++targetTime;
-                    }
-                }
+                stringBuilder1.append(stateIndex).append(",");
             }
-            if (targetTime.equals(columnSequence.length))
+            for (Integer column : columnSequence)
             {
-                getStateSetDict().get(target);
+                stringBuilder2.append(column).append(',');
+            }
+            if (stringBuilder1.toString().equals(stringBuilder2.toString()))
+            {
+                return getStateSetDict().get(target);
             }
         }
         return null;
