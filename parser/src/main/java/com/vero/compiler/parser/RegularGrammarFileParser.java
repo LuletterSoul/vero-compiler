@@ -174,7 +174,7 @@ public class RegularGrammarFileParser
         List<RegularGrammarProduction> productions = groupNoContainsNoTerminalSymbolProductions();
         List<RegularExpression> expressions = new ArrayList<>();
         productions.forEach(p -> {
-            RegularExpression expression = transferRegularGrammar2RegularExpression(p)
+            RegularExpression expression = transferRegularGrammar2RegularExpression(p);
             expressions.add(expression);
             this.production2RegularExpression.put(p.getLeftPart(),
                     expression);
