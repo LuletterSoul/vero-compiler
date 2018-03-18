@@ -22,10 +22,19 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("unchecked")
 public class CompressedTransitionTable
 {
+    /**
+     * 字符到等价类的查询表
+     */
     private Integer[] charClassTable;
 
+    /**
+     * 状态转换表的管理器
+     */
     private CompactCharSetManager compactCharSetManager;
 
+    /**
+     * DFA状态的压缩表
+     */
     private Integer[][] realCompressedTransitionTable;
 
     private List<DFAState> dfaStates;
@@ -187,10 +196,6 @@ public class CompressedTransitionTable
     {
         charSet.forEach(c -> {
             char c2 = (char)c;
-            if (c2 == 'i')
-            {
-                log.debug("iiiiiiii");
-            }
             getCharClassTable()[(int)c2] = index;
         });
     }

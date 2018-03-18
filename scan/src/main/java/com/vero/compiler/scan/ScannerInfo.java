@@ -22,12 +22,15 @@ public class ScannerInfo
 
     private SerializableScannerInfo detail;
 
+    private Integer endOfStreamTokenIndex;
+
     public ScannerInfo(Integer[][] realCompressedTransitionTable, Integer[] charClassTable,
                        ArrayList[] acceptTables, int size)
     {
+        this.endOfStreamTokenIndex = size;
         Integer[][] commonAcceptTable = transferToCommonAcceptTable(acceptTables);
         this.detail = new SerializableScannerInfo(commonAcceptTable, charClassTable, size,
-            realCompressedTransitionTable);
+                realCompressedTransitionTable);
     }
 
     private Integer[][] transferToCommonAcceptTable(ArrayList[] acceptTables)
@@ -35,10 +38,18 @@ public class ScannerInfo
         Integer[][] commonAcceptTable = new Integer[acceptTables.length][];
         for (int i = 0; i < commonAcceptTable.length; i++ )
         {
-            commonAcceptTable[i] = new Integer[acceptTables[i].size()];
-            for (int j = 0; j < commonAcceptTable[i].length; j++ )
+            //增加一列作为eof
+            commonAcceptTable[i] = new Integer[acceptTables[i].size() + 1];
+            Integer length = commonAcceptTable[i].length;
+            for (int j = 0; j < length; j++ )
             {
-                commonAcceptTable[i][j] = (Integer)acceptTables[i].get(j);
+                if (j < length - 1) {
+                    commonAcceptTable[i][j] = (Integer)acceptTables[i].get(j);
+                }
+                else{
+                    commonAcceptTable[i][j] = getEndOfStreamTokenIndex();
+                }
+
             }
         }
         return commonAcceptTable;

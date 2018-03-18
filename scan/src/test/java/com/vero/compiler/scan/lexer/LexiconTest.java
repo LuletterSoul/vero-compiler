@@ -1,3 +1,5 @@
+package com.vero.compiler.scan.lexer;
+
 import static com.vero.compiler.scan.expression.RegularExpression.Literal;
 import static com.vero.compiler.scan.expression.RegularExpression.Range;
 
@@ -23,7 +25,6 @@ import com.vero.compiler.scan.token.Token;
 
 public class LexiconTest
 {
-
     @Test
     public void testLexerStateToDFA()
     {
@@ -54,8 +55,11 @@ public class LexiconTest
             tc.getCharClassTable(), dfaModel.getAcceptTables(), lexicon.getTokenList().size());
 
         // 默认上下文Lexer,环境为global
-        //if应该被识别为标识符
+        // if应该被识别为标识符
         engine.inputString("if");
+        Assert.assertEquals(ID.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+
+        engine.resetAndInputString("asaasasasaasasasa");
         Assert.assertEquals(ID.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
         engine.resetMachineState();
@@ -66,7 +70,7 @@ public class LexiconTest
         engine.inputString("123456");
         Assert.assertEquals(NUM.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
-        //非法字符
+        // 非法字符
         engine.resetMachineState();
         engine.inputString("A");
         Assert.assertEquals(ERROR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
@@ -75,27 +79,27 @@ public class LexiconTest
         engine.inputString("AAAA");
         Assert.assertTrue(engine.isAtStoppedState());
 
-        //后有空格,在全局环境下自动机应该停机
+        // 后有空格,在全局环境下自动机应该停机
         engine.resetMachineState();
         engine.inputString("if ");
         Assert.assertTrue(engine.isAtStoppedState());
 
-        //切换到关键字环境
+        // 切换到关键字环境
         engine.resetMachineState();
         info.setLexerState(keywords.getIndex());
         engine.inputString("else");
         Assert.assertEquals(ELSE.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
-        //if应该被识别为关键字
+        // if应该被识别为关键字
         engine.resetMachineState();
         engine.inputString("if");
         Assert.assertEquals(IF.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
-        //xmlns应该被识别为标识符
+        // xmlns应该被识别为标识符
         engine.resetAndInputString("xmlns");
         Assert.assertEquals(ID.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
-        //切换到xml环境
+        // 切换到xml环境
         info.setLexerState(xml.getIndex());
         engine.resetAndInputString("xmlns");
         Assert.assertEquals(XMLNS.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
