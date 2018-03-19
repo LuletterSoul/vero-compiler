@@ -20,7 +20,7 @@ public class RegularGrammarProduction
 {
     private String leftPart;
 
-    private List<List<Object>> rightPart;
+    private List<List<String>> rightPart;
 
     public RegularGrammarProduction()
     {

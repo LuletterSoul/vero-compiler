@@ -9,6 +9,10 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.vero.compiler.scan.expression.RegularExpression;
+import com.vero.compiler.scan.expression.RegularExpressionType;
+import com.vero.compiler.scan.token.TokenType;
+
 
 /**
  * @author XiangDe Liu qq313700046@icloud.com .
@@ -47,19 +51,20 @@ public class RegularGrammarFileParserTest
     }
 
     @Test
-    public void group() {
+    public void group()
+    {
         File testGrammarFile = new File(
-                "F:\\GitHup\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar2.txt");
+            "F:\\GitHup\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar2.txt");
         RegularGrammarFileParser parser = new RegularGrammarFileParser(testGrammarFile);
         try
         {
             parser.parse();
             parser.getGrammarProductionDefinitions().forEach(System.out::println);
             parser.parseDefinitions();
-            List<RegularGrammarProduction> noContainNoTerminalSymbols = parser.groupNoContainsNoTerminalSymbolProductions();
-            noContainNoTerminalSymbols.forEach( nt->{
+            List<RegularGrammarProduction> noContainNoTerminalSymbols = parser.group().getNoContainTerminalSymbolProductions();
+            noContainNoTerminalSymbols.forEach(nt -> {
                 Assert.assertNotEquals(nt.getLeftPart(), "symbol");
-                Assert.assertNotEquals(nt.getLeftPart(),"n1");
+                Assert.assertNotEquals(nt.getLeftPart(), "n1");
             });
         }
         catch (IOException e)
@@ -69,9 +74,10 @@ public class RegularGrammarFileParserTest
     }
 
     @Test
-    public void transfer() {
+    public void transfer()
+    {
         File testGrammarFile = new File(
-                "F:\\GitHup\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar2.txt");
+            "F:\\GitHup\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar3.txt");
         RegularGrammarFileParser parser = new RegularGrammarFileParser(testGrammarFile);
         try
         {
@@ -79,6 +85,13 @@ public class RegularGrammarFileParserTest
             parser.getGrammarProductionDefinitions().forEach(System.out::println);
             parser.parseDefinitions();
             parser.transfer();
+            RegularExpression[] tokenExpressions = parser.getTokenExpressions();
+            Assert.assertNotEquals(tokenExpressions[TokenType.DELIMITER.getPriority()],
+                RegularExpressionType.Alternation);
+            Assert.assertNotEquals(tokenExpressions[TokenType.ALPHABET.getPriority()],
+                RegularExpressionType.Alternation);
+            Assert.assertNotEquals(tokenExpressions[TokenType.NUM.getPriority()],
+                RegularExpressionType.Alternation);
         }
         catch (IOException e)
         {

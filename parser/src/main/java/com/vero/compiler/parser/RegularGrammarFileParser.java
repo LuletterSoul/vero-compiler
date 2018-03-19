@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.vero.compiler.scan.expression.RegularExpression;
+import com.vero.compiler.scan.token.TokenType;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -29,13 +30,26 @@ public class RegularGrammarFileParser
 
     private List<Character> terminalSymbol;
 
+    /**
+     * 产生式的定义
+     */
     private List<String> grammarProductionDefinitions;
 
+    /**
+     * 产生式的
+     */
     private Map<String, RegularExpression> production2RegularExpression = new HashMap<>();
 
+    /**
+     *
+     */
     private Map<String, RegularGrammarProduction> grammarProductionMap = new HashMap<>();
 
+    private ProductionDivide productionDivide;
+
     private List<RegularGrammarProduction> grammarProductions = new ArrayList<>();
+
+    private RegularExpression[] tokenExpressions = new RegularExpression[TokenType.getTokenTypeMap().size()];
 
     public RegularGrammarFileParser(File grammarSource)
     {
@@ -72,8 +86,8 @@ public class RegularGrammarFileParser
             char chars[] = pd.toCharArray();
             boolean isScanningRightPart = false;
             String currentLeftPart = null;
-            List<List<Object>> rightParts = new ArrayList<>();
-            List<Object> currentRightPart = new ArrayList<>();
+            List<List<String>> rightParts = new ArrayList<>();
+            List<String> currentRightPart = new ArrayList<>();
             RegularGrammarProduction grammarProduction = new RegularGrammarProduction();
             for (int i = 0; i < chars.length; i++ )
             {
@@ -148,15 +162,16 @@ public class RegularGrammarFileParser
         return this.grammarProductionMap.keySet();
     }
 
-    public List<RegularGrammarProduction> groupNoContainsNoTerminalSymbolProductions()
+    public ProductionDivide group()
     {
         List<RegularGrammarProduction> productions = new ArrayList<>();
+        List<RegularGrammarProduction> elseProductions = new ArrayList<>();
         Set<String> terminalSymbols = getNoTerminalSymbols();
         this.grammarProductions.forEach(p -> {
-            List<List<Object>> rightParts = p.getRightPart();
+            List<List<String>> rightParts = p.getRightPart();
             AtomicBoolean isContainNoTerminalSymbols = new AtomicBoolean(false);
             rightParts.forEach(rightPart -> rightPart.forEach(r -> terminalSymbols.forEach(t -> {
-                if (t.equals(r.toString()))
+                if (t.equals(r))
                 {
                     isContainNoTerminalSymbols.set(true);
                 }
@@ -165,55 +180,99 @@ public class RegularGrammarFileParser
             {
                 productions.add(p);
             }
+            else
+            {
+                elseProductions.add(p);
+            }
         });
-        return productions;
+
+        return new ProductionDivide(productions, elseProductions);
     }
 
     public List<RegularExpression> transfer()
     {
-        List<RegularGrammarProduction> productions = groupNoContainsNoTerminalSymbolProductions();
+        Map<String, TokenType> tokenTypeMap = TokenType.getTokenTypeMap();
+        this.productionDivide = group();
         List<RegularExpression> expressions = new ArrayList<>();
-        productions.forEach(p -> {
+        productionDivide.getNoContainTerminalSymbolProductions().forEach(p -> {
             RegularExpression expression = transferRegularGrammar2RegularExpression(p);
             expressions.add(expression);
-            this.production2RegularExpression.put(p.getLeftPart(),
-                    expression);
+            this.production2RegularExpression.put(p.getLeftPart(), expression);
+            TokenType tokenType = tokenTypeMap.get(p.getLeftPart().toUpperCase());
+            if (tokenType != null)
+            {
+                this.tokenExpressions[tokenType.getPriority()] = expression;
+            }
+        });
+
+        Set<String> noTerminalSymbols = this.getNoTerminalSymbols();
+        productionDivide.getContainTerminalSymbolProductions().forEach(c -> {
+            List<List<String>> rightParts = c.getRightPart();
+            rightParts.forEach(r -> {
+                RegularExpression baseRegularExpression = RegularExpression.Empty();
+                List<String> preComponents = new ArrayList<>();
+                for (String s : r)
+                {
+                    preComponents.add(s);
+                    RegularExpression periodExpression = RegularExpression.Empty();
+                    if (noTerminalSymbols.contains(s))
+                    {
+                        // 正规文法含右递归
+                        if (s.equals(c.getLeftPart()))
+                        {
+                            for (String component : preComponents)
+                            {
+                                // 寻找对应表达式生成闭包
+                                TokenType tokenType = tokenTypeMap.get(component.toUpperCase());
+                                RegularExpression expression = this.tokenExpressions[tokenType.getPriority()];
+                                periodExpression = expression.Many();
+                            }
+                        }
+                        TokenType tokenType = tokenTypeMap.get(s);
+                        if (tokenType != null)
+                        {
+                            periodExpression = this.tokenExpressions[tokenType.getPriority()];
+                        }
+                    }
+                    else
+                    {
+                        periodExpression = RegularExpression.CharSet(s.toCharArray());
+                    }
+                    baseRegularExpression.Union(periodExpression);
+                }
+                preComponents.clear();
+            });
         });
         return expressions;
     }
 
     public RegularExpression transferRegularGrammar2RegularExpression(RegularGrammarProduction production)
     {
-        List<List<Object>> rightParts = production.getRightPart();
+        List<List<String>> rightParts = production.getRightPart();
         boolean isFirstSetUpUnion = true;
         RegularExpression alternationExpression = null;
-        for (List<Object> r : rightParts)
+        for (List<String> r : rightParts)
         {
             boolean isFirstSetUpConcat = true;
             RegularExpression concatationExpression = null;
-            for (Object o : r)
+            for (String s : r)
             {
-                if (o instanceof String)
+                char[] chars = s.toCharArray();
+                List<Character> wrap = new ArrayList<>();
+                for (char aChar : chars)
                 {
-                    String s = (String)o;
-                    char[] chars = ((String)o).toCharArray();
-                    List<Character> wrap = new ArrayList<>();
-                    for (char aChar : chars)
-                    {
-                        wrap.add(aChar);
-                    }
-                    RegularExpression newExpression = RegularExpression.CharSet(wrap);
-                    if (isFirstSetUpConcat)
-                    {
-                        isFirstSetUpConcat = false;
-                        concatationExpression = newExpression;
-                    }
-                    else
-                    {
-                        concatationExpression = concatationExpression.Concat(newExpression);
-                    }
+                    wrap.add(aChar);
                 }
-
+                RegularExpression newExpression = RegularExpression.CharSet(wrap);
+                if (isFirstSetUpConcat)
+                {
+                    isFirstSetUpConcat = false;
+                    concatationExpression = newExpression;
+                }
+                else
+                {
+                    concatationExpression = concatationExpression.Concat(newExpression);
+                }
             }
             if (isFirstSetUpUnion)
             {
@@ -233,7 +292,7 @@ public class RegularGrammarFileParser
         return chars[i - 1] != '|' && chars[i - 1] != '→' && chars[i - 1] != '>';
     }
 
-    private String buildNewRightPart(Queue<Character> queue, List<Object> currentRightPart)
+    private String buildNewRightPart(Queue<Character> queue, List<String> currentRightPart)
     {
         if (queue.isEmpty())
         {

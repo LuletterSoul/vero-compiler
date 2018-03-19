@@ -1,6 +1,7 @@
 package com.vero.compiler.scan.expression;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -107,6 +108,16 @@ public abstract class RegularExpression
     public static RegularExpression CharSet(List<Character> charSet)
     {
         return regularExpressionBuilder.CharSet(charSet);
+    }
+
+    public static RegularExpression CharSet(char[] chars)
+    {
+        List<Character> characters = new ArrayList<>();
+        for (int i = 0; i < chars.length; i++ )
+        {
+            characters.add(chars[i]);
+        }
+        return regularExpressionBuilder.CharSet(characters);
     }
 
 }
