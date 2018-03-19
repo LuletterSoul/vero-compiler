@@ -37,10 +37,10 @@ public class RegularGrammarFileParserTest
             Map<String, RegularGrammarProduction> grammarProductionMap = parser.getGrammarProductionMap();
             RegularGrammarProduction production = grammarProductionMap.get("<symbol>");
             Assert.assertEquals("<symbol>", production.getLeftPart());
-            List<List<Object>> rightPart = production.getRightPart();
-            List<Object> first = rightPart.get(0);
+            List<List<String>> rightPart = production.getRightPart();
+            List<String> first = rightPart.get(0);
             Assert.assertEquals("<alphanumeric>", first.get(0));
-            List<Object> second = rightPart.get(1);
+            List<String> second = rightPart.get(1);
             Assert.assertEquals("<alphanumeric>", second.get(0));
             Assert.assertEquals("<num>", second.get(1));
         }

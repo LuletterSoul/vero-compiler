@@ -206,8 +206,10 @@ public class RegularGrammarFileParser
         });
 
         Set<String> noTerminalSymbols = this.getNoTerminalSymbols();
+        List<RegularGrammarProduction> caches = new ArrayList<>();
         productionDivide.getContainTerminalSymbolProductions().forEach(c -> {
             List<List<String>> rightParts = c.getRightPart();
+            TokenType currentTokenType = TokenType.getTokenTypeMap().get(c.getLeftPart().toUpperCase());
             rightParts.forEach(r -> {
                 RegularExpression baseRegularExpression = RegularExpression.Empty();
                 List<String> preComponents = new ArrayList<>();
@@ -224,11 +226,16 @@ public class RegularGrammarFileParser
                             {
                                 // 寻找对应表达式生成闭包
                                 TokenType tokenType = tokenTypeMap.get(component.toUpperCase());
+                                //如果当前Token的表达式还未生成,加入缓存队列;
+                                if (tokenType == null) {
+                                    caches.add(c);
+                                    break;
+                                }
                                 RegularExpression expression = this.tokenExpressions[tokenType.getPriority()];
                                 periodExpression = expression.Many();
                             }
                         }
-                        TokenType tokenType = tokenTypeMap.get(s);
+                        TokenType tokenType = tokenTypeMap.get(s.toUpperCase());
                         if (tokenType != null)
                         {
                             periodExpression = this.tokenExpressions[tokenType.getPriority()];
@@ -238,8 +245,9 @@ public class RegularGrammarFileParser
                     {
                         periodExpression = RegularExpression.CharSet(s.toCharArray());
                     }
-                    baseRegularExpression.Union(periodExpression);
+                    baseRegularExpression = baseRegularExpression.Union(periodExpression);
                 }
+                this.tokenExpressions[currentTokenType.getPriority()] = baseRegularExpression;
                 preComponents.clear();
             });
         });
