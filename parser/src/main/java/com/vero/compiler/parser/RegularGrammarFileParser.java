@@ -5,7 +5,9 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.vero.compiler.scan.exception.TokenMatchLostException;
 import com.vero.compiler.scan.expression.RegularExpression;
+import com.vero.compiler.scan.expression.RegularExpressionType;
 import com.vero.compiler.scan.token.TokenType;
 
 import lombok.Getter;
@@ -189,33 +191,28 @@ public class RegularGrammarFileParser
         return new ProductionDivide(productions, elseProductions);
     }
 
-    public List<RegularExpression> transfer()
+    public RegularExpression[] transfer()
     {
         Map<String, TokenType> tokenTypeMap = TokenType.getTokenTypeMap();
         this.productionDivide = group();
-        List<RegularExpression> expressions = new ArrayList<>();
-        productionDivide.getNoContainTerminalSymbolProductions().forEach(p -> {
-            RegularExpression expression = transferRegularGrammar2RegularExpression(p);
-            expressions.add(expression);
-            this.production2RegularExpression.put(p.getLeftPart(), expression);
-            TokenType tokenType = tokenTypeMap.get(p.getLeftPart().toUpperCase());
-            if (tokenType != null)
-            {
-                this.tokenExpressions[tokenType.getPriority()] = expression;
-            }
-        });
-
         Set<String> noTerminalSymbols = this.getNoTerminalSymbols();
-        List<RegularGrammarProduction> caches = new ArrayList<>();
-        productionDivide.getContainTerminalSymbolProductions().forEach(c -> {
+        Queue<RegularGrammarProduction> queue = new LinkedList<>();
+        queue.addAll(productionDivide.getNoContainTerminalSymbolProductions());
+        queue.addAll(productionDivide.getContainTerminalSymbolProductions());
+        while (!queue.isEmpty())
+        {
+            RegularGrammarProduction c = queue.poll();
             List<List<String>> rightParts = c.getRightPart();
-            TokenType currentTokenType = TokenType.getTokenTypeMap().get(c.getLeftPart().toUpperCase());
-            rightParts.forEach(r -> {
-                RegularExpression baseRegularExpression = RegularExpression.Empty();
+            TokenType currentTokenType = TokenType.getTokenTypeMap().get(
+                c.getLeftPart().toUpperCase());
+            RegularExpression baseRegularExpression = RegularExpression.Empty();
+            boolean isDelayed = false;
+            for (List<String> r : rightParts)
+            {
+                RegularExpression concatExpression = RegularExpression.Empty();
                 List<String> preComponents = new ArrayList<>();
                 for (String s : r)
                 {
-                    preComponents.add(s);
                     RegularExpression periodExpression = RegularExpression.Empty();
                     if (noTerminalSymbols.contains(s))
                     {
@@ -226,32 +223,100 @@ public class RegularGrammarFileParser
                             {
                                 // 寻找对应表达式生成闭包
                                 TokenType tokenType = tokenTypeMap.get(component.toUpperCase());
-                                //如果当前Token的表达式还未生成,加入缓存队列;
-                                if (tokenType == null) {
-                                    caches.add(c);
-                                    break;
+                                // 如果当前Token的表达式还未生成,重新入队;
+                                if (tokenType == null)
+                                {
+                                    throw new TokenMatchLostException(
+                                        "Could not find corresponding no terminal production");
                                 }
                                 RegularExpression expression = this.tokenExpressions[tokenType.getPriority()];
-                                periodExpression = expression.Many();
+                                if (expression == null)
+                                {
+                                    queue.add(c);
+                                    isDelayed = true;
+                                    preComponents.clear();
+                                    break;
+                                }
+                                periodExpression = concat(periodExpression, expression);
                             }
+                            periodExpression = periodExpression.Many();
+                            log.debug("~~~~~");
                         }
-                        TokenType tokenType = tokenTypeMap.get(s.toUpperCase());
-                        if (tokenType != null)
+                        else
                         {
-                            periodExpression = this.tokenExpressions[tokenType.getPriority()];
+                            TokenType tokenType = tokenTypeMap.get(s.toUpperCase());
+                            if (tokenType != null)
+                            {
+                                periodExpression = this.tokenExpressions[tokenType.getPriority()];
+                            }
                         }
                     }
                     else
                     {
                         periodExpression = RegularExpression.CharSet(s.toCharArray());
                     }
-                    baseRegularExpression = baseRegularExpression.Union(periodExpression);
+                    preComponents.add(s);
+                    concatExpression = concat(concatExpression, periodExpression);
                 }
+                if (isDelayed)
+                {
+                    break;
+                }
+                baseRegularExpression = union(baseRegularExpression, concatExpression);
+            }
+            if (!isDelayed)
+            {
                 this.tokenExpressions[currentTokenType.getPriority()] = baseRegularExpression;
-                preComponents.clear();
-            });
-        });
-        return expressions;
+            }
+        }
+        return this.tokenExpressions;
+    }
+
+    private RegularExpression union(RegularExpression baseRegularExpression,
+                                    RegularExpression unionExpression)
+    {
+        if (!isEmptyExpression(unionExpression) && isEmptyExpression(unionExpression))
+        {
+            baseRegularExpression = unionExpression;
+        }
+        else
+        {
+            baseRegularExpression = baseRegularExpression.Union(unionExpression);
+        }
+        return baseRegularExpression;
+    }
+
+    private boolean isEmptyExpression(RegularExpression concatExpression)
+    {
+        return concatExpression.getExpressionType().equals(RegularExpressionType.Empty);
+    }
+
+    private RegularExpression concat(RegularExpression concatExpression,
+                                     RegularExpression periodExpression)
+    {
+        if (!isEmptyExpression(periodExpression) && isEmptyExpression(concatExpression))
+        {
+            concatExpression = periodExpression;
+        }
+        else
+        {
+            concatExpression = concatExpression.Concat(periodExpression);
+        }
+        return concatExpression;
+    }
+
+    private RegularExpression many(RegularExpression baseExpression,
+                                   RegularExpression closureExpression)
+    {
+        if (!isEmptyExpression(closureExpression) && isEmptyExpression(baseExpression))
+        {
+            baseExpression = closureExpression;
+        }
+        else
+        {
+            baseExpression = closureExpression.Many();
+        }
+        return baseExpression;
     }
 
     public RegularExpression transferRegularGrammar2RegularExpression(RegularGrammarProduction production)

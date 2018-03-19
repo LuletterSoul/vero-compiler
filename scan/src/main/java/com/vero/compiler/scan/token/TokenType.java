@@ -12,10 +12,15 @@ import java.util.Map;
  */
 
 public enum TokenType {
-    KEY_WORDS(1, "<keywords>", "关键字"), VAR(2, "<var>", "标识符"), NUM(3, "<number>", "数字"), INTEGER(4,
-        "<integer>", "整数"), UNSIGNED_INTEGER(5, "<unsigned_integer>", "无符号整数"), ALPHABET(4,
-            "<alphabet>",
-            "字母"), DELIMITER(5, "<delimiter>", "界符"), OPERATOR(6, "<operator>", "运算符"),;
+    VAR(0, "<var>", "标识符"),
+    KEY_WORDS(1, "<keywords>", "关键字"),
+    NUMBER(2, "<number>", "数字"),
+    NUMBER_ALPHABET(3,"<number_alphabet>","字母数字"),
+    INTEGER(4, "<integer>", "整数"),
+    UNSIGNED_INTEGER(5, "<unsigned_integer>", "无符号整数"),
+    ALPHABET(6, "<alphabet>", "字母"),
+    DELIMITER(7, "<delimiter>", "界符"),
+    OPERATOR(8, "<operator>", "运算符"),;
 
     private Integer priority;
 

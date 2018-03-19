@@ -246,8 +246,8 @@ public class DFAModel
                         // 如果子集已存在,直接建立后向边
                         if (log.isDebugEnabled())
                         {
-                            log.debug("Duplicated children set:{}",
-                                Arrays.toString(newNfaStateIndexSet.toArray()));
+//                            log.debug("Duplicated children set:{}",
+//                                Arrays.toString(newNfaStateIndexSet.toArray()));
                         }
                         DFAEdge newEdge = new DFAEdge(symbol, getDfaStates().get(i));
                         sourceState.addEdge(newEdge);
@@ -310,9 +310,9 @@ public class DFAModel
         DFAState moveResult = move(start, equivalenceClassIndex);
         if (log.isDebugEnabled())
         {
-            log.debug("After input [{}], {} move to <------------->{}", equivalenceClassIndex,
-                Arrays.toString(start.getNfaStateIndexSet().toArray()),
-                Arrays.toString(moveResult.getNfaStateIndexSet().toArray()));
+//            log.debug("After input [{}], {} move to <------------->{}", equivalenceClassIndex,
+//                Arrays.toString(start.getNfaStateIndexSet().toArray()),
+//                Arrays.toString(moveResult.getNfaStateIndexSet().toArray()));
         }
         return computeClosure(moveResult);
     }
@@ -441,9 +441,9 @@ public class DFAModel
         // }
         if (log.isDebugEnabled())
         {
-            log.debug("Pre closure index set:{} <----------->After {}",
-                Arrays.toString(state.getNfaStateIndexSet().toArray()),
-                Arrays.toString(closure.getNfaStateIndexSet().toArray()));
+//            log.debug("Pre closure index set:{} <----------->After {}",
+//                Arrays.toString(state.getNfaStateIndexSet().toArray()),
+//                Arrays.toString(closure.getNfaStateIndexSet().toArray()));
         }
         return closure;
     }
