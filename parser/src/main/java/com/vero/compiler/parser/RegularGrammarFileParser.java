@@ -91,86 +91,98 @@ public class RegularGrammarFileParser
             List<List<String>> rightParts = new ArrayList<>();
             List<String> currentRightPart = new ArrayList<>();
             RegularGrammarProduction grammarProduction = new RegularGrammarProduction();
-            for (int i = 0; i < chars.length; i++ )
+            for (int i = 0; i < chars.length;)
             {
                 if (!isScanningRightPart)
                 {
                     if (chars[i] == '→')
                     {
                         isScanningRightPart = true;
+                        ++i;
                         continue;
                     }
-                    queue.add(chars[i]);
-                    if (chars[i] == '>')
+                    if (chars[i] == '<')
                     {
+                        do
+                        {
+                            queue.add(chars[i]);
+                        }
+                        while (chars[i++ ] != '>');
                         currentLeftPart = concatSubProduction(queue);
                         grammarProduction.setLeftPart(currentLeftPart);
-                        log.debug("No terminal symbol : [{}]", currentLeftPart);
+                        log.debug("Parser gained a new terminal symbol : [{}]", currentLeftPart);
                     }
                 }
                 else
                 {
-                    boolean isNoTerminalSymbol = chars[i] == '>' || chars[i] == '<';
-                    boolean isQuote = chars[i] =='"';
-                    boolean isOr = chars[i] == '|';
-                    boolean isEndOfLine = i == chars.length - 1;
-                    if (isNoTerminalSymbol && !isEndOfLine)
+                    if (chars[i] == '<')
                     {
-                        if (chars[i] == '<')
+                        boolean isEnd = false;
+                        while (!isEnd)
                         {
-                            if (isNotDelimiter(chars, i))
+                            do
                             {
-                                String newRightPartCompose = buildNewRightPart(queue,
-                                    currentRightPart);
-                                log.debug("Contained terminal symbol : [{}]", newRightPartCompose);
+                                queue.add(chars[i]);
                             }
-                            queue.add(chars[i]);
-                        }
-                        else
-                        {
-                            queue.add(chars[i]);
+                            while (chars[i++ ] != '>');
                             String newRightPartCompose = buildNewRightPart(queue,
                                 currentRightPart);
-                            log.debug("Contained terminal symbol : [{}]", newRightPartCompose);
-                        }
-                    } else if (isQuote) {
-                        while (chars[i + 1] != '"') {
-                            queue.add(chars[i + 1]);
-                            i++;
-                        }
-                        String newRightPartCompose = buildNewRightPart(queue,
-                                currentRightPart);
-                        log.debug("Contained terminal symbol : [{}]", newRightPartCompose);
-                    } else if (isOr || isEndOfLine) {
-                        boolean isContainedDelimeter = false;
-                        boolean isContianedElseAlphabet = false;
-                        boolean isContainedQuote = false;
-                        for (Character element : queue) {
-                            if (element == '<' || element == '>') {
-                                isContainedDelimeter = true;
-                            } else if (element == '"') {
-                                isContainedQuote = true;
-                            } else {
-                                isContianedElseAlphabet = true;
+                            log.debug(
+                                "Parser gained production right part no terminal symbol : [{}]",
+                                newRightPartCompose);
+                            if (i + 1 > chars.length || chars[i] == '|')
+                            {
+                                isEnd = true;
                             }
                         }
-                        if (isContianedElseAlphabet && !isContainedDelimeter && !isEndOfLine) {
-                            if (chars[i] != '|') {
-                                queue.add(chars[i]);
-                                continue;
-                            } else {
+
+                    }
+                    else if (chars[i] == '|')
+                    {
+                        i++ ;
+                        continue;
+                    }
+                    else if (chars[i] != '"')
+                    {
+                        do {
+                            if (chars[i] == '|') {
                                 continue;
                             }
-                        }
-                        if (isEndOfLine) {
                             queue.add(chars[i]);
                         }
-                        buildNewRightPart(queue, currentRightPart);
-                        rightParts.add(currentRightPart);
-                        currentRightPart = new ArrayList<>();
-                    } else {
-                        queue.add(chars[i]);
+                        while (chars[i++] != '<' && i !=chars.length);
+                        String newRightPartCompose = buildNewRightPart(queue, currentRightPart);
+                        log.debug("Parser gained production right part contactable string : [{}]",
+                            newRightPartCompose);
+                        if ( i != chars.length&&chars[i] == '<' )
+                        {
+                            do
+                            {
+                                queue.add(chars[i]);
+                            }
+                            while (chars[i++ ] != '>');
+                            newRightPartCompose = buildNewRightPart(queue, currentRightPart);
+                            log.debug(
+                                "Parser gained production right part no terminal symbol : [{}]",
+                                newRightPartCompose);
+                        }
                     }
+                    else if (chars[i] == '"')
+                    {
+                        do
+                        {
+                            queue.add(chars[i]);
+                        }
+                        while (chars[++i] != '"');
+                        queue.add(chars[i]);
+                        String newRightPartCompose = buildNewRightPart(queue, currentRightPart);
+                        log.debug("Parser gained production right part literal string : [{}]",
+                            newRightPartCompose);
+                        ++i;
+                    }
+                    buildNewRightPart(queue, currentRightPart);
+                    rightParts.add(currentRightPart);
+                    currentRightPart = new ArrayList<>();
                 }
             }
             if (currentLeftPart == null)
@@ -270,7 +282,7 @@ public class RegularGrammarFileParser
                             TokenType tokenType = tokenTypeMap.get(s.toUpperCase());
                             if (tokenType != null)
                             {
-                                RegularExpression expression  = this.tokenExpressions[tokenType.getPriority()];
+                                RegularExpression expression = this.tokenExpressions[tokenType.getPriority()];
                                 if (expression == null)
                                 {
                                     queue.add(c);
@@ -284,7 +296,13 @@ public class RegularGrammarFileParser
                     }
                     else
                     {
-                        periodExpression = RegularExpression.CharSet(s.toCharArray());
+                        if (s.indexOf('"') == -1) {
+                            periodExpression = RegularExpression.CharSet(s.toCharArray());
+                        }
+                        else{
+                            periodExpression = RegularExpression.Literal(s.substring(1, s.length() - 1));
+                        }
+
                     }
                     preComponents.add(s);
                     concatExpression = concat(concatExpression, periodExpression);

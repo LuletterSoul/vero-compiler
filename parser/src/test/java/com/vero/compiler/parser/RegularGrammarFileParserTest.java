@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import lombok.experimental.Tolerate;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -100,11 +101,14 @@ public class RegularGrammarFileParserTest
         Lexer unsigned_integer = global.createSubLexer();
         Lexer xml = keywords.createSubLexer();
 
-        Token ALPHABET = numberAlphabet.defineToken(tokenExpressions[TokenType.ALPHABET.getPriority()]);
+        Token KEY_WORDS = keywords.defineToken(tokenExpressions[TokenType.KEY_WORDS.getPriority()]);
 
-        Token NUMBER = numberAlphabet.defineToken(tokenExpressions[TokenType.NUMBER.getPriority()]);
+//        Token ALPHABET = numberAlphabet.defineToken(tokenExpressions[TokenType.ALPHABET.getPriority()]);
+//
+//        Token NUMBER = numberAlphabet.defineToken(tokenExpressions[TokenType.NUMBER.getPriority()]);
+//
+//        Token NUM_ALPHABET = numberAlphabet.defineToken(tokenExpressions[TokenType.NUMBER_ALPHABET.getPriority()]);
 
-        Token NUM_ALPHABET = numberAlphabet.defineToken(tokenExpressions[TokenType.NUMBER_ALPHABET.getPriority()]);
 
         Lexer ids = numberAlphabet.createSubLexer();
 
@@ -144,15 +148,32 @@ public class RegularGrammarFileParserTest
         Assert.assertEquals(VAR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
 
-//        engine.resetMachineState();
-//        engine.inputString("a1q23abrefw");
-//        Assert.assertEquals(VAR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+        engine.resetMachineState();
+        engine.inputString("a1q23abrefw");
+        Assert.assertEquals(VAR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
 
         engine.resetMachineState();
         engine.inputString("31234dewdewdew");
         Assert.assertTrue(engine.isAtStoppedState());
 
+        engine.resetMachineState();
+        engine.inputString("gbg");
+        Assert.assertEquals(VAR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+
+
+        info.setLexerState(keywords.getIndex());
+        engine.resetMachineState();
+        engine.resetAndInputString("Float");
+        Assert.assertEquals(KEY_WORDS.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+
+        engine.resetMachineState();
+        engine.resetAndInputString("Integer");
+        Assert.assertEquals(KEY_WORDS.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+
+        engine.resetMachineState();
+        engine.resetAndInputString("const");
+        Assert.assertEquals(KEY_WORDS.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
         engine.resetMachineState();
         engine.inputString("+");
@@ -174,9 +195,6 @@ public class RegularGrammarFileParserTest
         Assert.assertEquals(OPERATOR.getIndex(),
             info.getTokenIndex(engine.getCurrentStateIndex()));
 
-        engine.resetMachineState();
-        engine.inputString("gbg");
-        Assert.assertEquals(VAR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
         engine.resetMachineState();
         info.setLexerState(global.getIndex());

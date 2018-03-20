@@ -52,7 +52,7 @@ public class AlternationExpression extends RegularExpression
 
         exp1Clone.addAll(exp2Clone);
 
-        return exp2Clone;
+        return exp1Clone;
     }
 
     @Override
