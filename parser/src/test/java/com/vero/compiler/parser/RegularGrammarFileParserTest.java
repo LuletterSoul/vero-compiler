@@ -96,13 +96,26 @@ public class RegularGrammarFileParserTest
         Lexicon lexicon = new Lexicon();
         Lexer global = lexicon.getDefaultLexer();
         Lexer keywords = global.createSubLexer();
-        Lexer numberics = global.createSubLexer();
-        Lexer ids = global.createSubLexer();
+        Lexer numberAlphabet = global.createSubLexer();
+        Lexer unsigned_integer = global.createSubLexer();
         Lexer xml = keywords.createSubLexer();
-        Token ID = ids.defineToken(tokenExpressions[TokenType.VAR.getPriority()]);
+
+        Token ALPHABET = numberAlphabet.defineToken(tokenExpressions[TokenType.ALPHABET.getPriority()]);
+
+        Token NUMBER = numberAlphabet.defineToken(tokenExpressions[TokenType.NUMBER.getPriority()]);
+
+        Token NUM_ALPHABET = numberAlphabet.defineToken(tokenExpressions[TokenType.NUMBER_ALPHABET.getPriority()]);
+
+        Lexer ids = numberAlphabet.createSubLexer();
+
+        Token VAR = ids.defineToken(tokenExpressions[TokenType.VAR.getPriority()]);
+
+        Token UNSIGNED_INTEGER = global.defineToken(
+                tokenExpressions[TokenType.UNSIGNED_INTEGER.getPriority()]);
+
+
+
         Token OPERATOR = global.defineToken(tokenExpressions[TokenType.OPERATOR.getPriority()]);
-        Token NUM = global.defineToken(tokenExpressions[TokenType.NUMBER.getPriority()]);
-        Token UNSIGNED_INTEGER = numberics.defineToken(tokenExpressions[TokenType.UNSIGNED_INTEGER.getPriority()]);
 
         RegularExpressionConverter converter = new NFAConverter(
             lexicon.getCompactCharSetManager());
@@ -122,50 +135,61 @@ public class RegularGrammarFileParserTest
 
         // 默认上下文Lexer,环境为global
         // if应该被识别为标识符
-        engine.inputString("if");
         info.setLexerState(ids.getIndex());
-        Assert.assertEquals(ID.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
-
-        engine.resetAndInputString("asaasasasaasasasa");
-        Assert.assertEquals(ID.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+        engine.inputString("if");
+        Assert.assertEquals(VAR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
         engine.resetMachineState();
-        engine.inputString("asfagth31234");
-        Assert.assertEquals(ID.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+        engine.resetAndInputString("asa245asas24asaasasasa");
+        Assert.assertEquals(VAR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+
+
+//        engine.resetMachineState();
+//        engine.inputString("a1q23abrefw");
+//        Assert.assertEquals(VAR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+
+
+        engine.resetMachineState();
+        engine.inputString("31234dewdewdew");
+        Assert.assertTrue(engine.isAtStoppedState());
+
 
         engine.resetMachineState();
         engine.inputString("+");
-        Assert.assertEquals(OPERATOR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+        Assert.assertEquals(OPERATOR.getIndex(),
+            info.getTokenIndex(engine.getCurrentStateIndex()));
 
         engine.resetMachineState();
         engine.inputString("-");
-        Assert.assertEquals(OPERATOR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+        Assert.assertEquals(OPERATOR.getIndex(),
+            info.getTokenIndex(engine.getCurrentStateIndex()));
 
         engine.resetMachineState();
         engine.inputString("*");
-        Assert.assertEquals(OPERATOR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+        Assert.assertEquals(OPERATOR.getIndex(),
+            info.getTokenIndex(engine.getCurrentStateIndex()));
 
         engine.resetMachineState();
         engine.inputString("/");
-        Assert.assertEquals(OPERATOR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+        Assert.assertEquals(OPERATOR.getIndex(),
+            info.getTokenIndex(engine.getCurrentStateIndex()));
 
+        engine.resetMachineState();
+        engine.inputString("gbg");
+        Assert.assertEquals(VAR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
         engine.resetMachineState();
         info.setLexerState(global.getIndex());
-        engine.inputString("1");
-        Assert.assertEquals(NUM.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
-
-        engine.resetMachineState();
-        info.setLexerState(numberics.getIndex());
         engine.inputString("1234567");
-        Assert.assertEquals(UNSIGNED_INTEGER.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+        Assert.assertEquals(UNSIGNED_INTEGER.getIndex(),
+            info.getTokenIndex(engine.getCurrentStateIndex()));
 
     }
 
     private RegularExpression[] transferDefinition2Token()
     {
         File testGrammarFile = new File(
-            "F:\\GitHup\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar3.txt");
+            "C:\\Users\\31370\\IdeaProjects\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar3.txt");
         RegularGrammarFileParser parser = new RegularGrammarFileParser(testGrammarFile);
         try
         {

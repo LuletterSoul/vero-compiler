@@ -111,6 +111,7 @@ public class RegularGrammarFileParser
                 else
                 {
                     boolean isNoTerminalSymbol = chars[i] == '>' || chars[i] == '<';
+                    boolean isQuote = chars[i] =='"';
                     boolean isOr = chars[i] == '|';
                     boolean isEndOfLine = i == chars.length - 1;
                     if (isNoTerminalSymbol && !isEndOfLine)
@@ -132,19 +133,42 @@ public class RegularGrammarFileParser
                                 currentRightPart);
                             log.debug("Contained terminal symbol : [{}]", newRightPartCompose);
                         }
-                    }
-                    else if (isOr || isEndOfLine)
-                    {
-                        if (isEndOfLine)
-                        {
+                    } else if (isQuote) {
+                        while (chars[i + 1] != '"') {
+                            queue.add(chars[i + 1]);
+                            i++;
+                        }
+                        String newRightPartCompose = buildNewRightPart(queue,
+                                currentRightPart);
+                        log.debug("Contained terminal symbol : [{}]", newRightPartCompose);
+                    } else if (isOr || isEndOfLine) {
+                        boolean isContainedDelimeter = false;
+                        boolean isContianedElseAlphabet = false;
+                        boolean isContainedQuote = false;
+                        for (Character element : queue) {
+                            if (element == '<' || element == '>') {
+                                isContainedDelimeter = true;
+                            } else if (element == '"') {
+                                isContainedQuote = true;
+                            } else {
+                                isContianedElseAlphabet = true;
+                            }
+                        }
+                        if (isContianedElseAlphabet && !isContainedDelimeter && !isEndOfLine) {
+                            if (chars[i] != '|') {
+                                queue.add(chars[i]);
+                                continue;
+                            } else {
+                                continue;
+                            }
+                        }
+                        if (isEndOfLine) {
                             queue.add(chars[i]);
                         }
                         buildNewRightPart(queue, currentRightPart);
                         rightParts.add(currentRightPart);
                         currentRightPart = new ArrayList<>();
-                    }
-                    else
-                    {
+                    } else {
                         queue.add(chars[i]);
                     }
                 }
@@ -240,14 +264,21 @@ public class RegularGrammarFileParser
                                 periodExpression = concat(periodExpression, expression);
                             }
                             periodExpression = periodExpression.Many();
-                            log.debug("~~~~~");
                         }
                         else
                         {
                             TokenType tokenType = tokenTypeMap.get(s.toUpperCase());
                             if (tokenType != null)
                             {
-                                periodExpression = this.tokenExpressions[tokenType.getPriority()];
+                                RegularExpression expression  = this.tokenExpressions[tokenType.getPriority()];
+                                if (expression == null)
+                                {
+                                    queue.add(c);
+                                    isDelayed = true;
+                                    preComponents.clear();
+                                    break;
+                                }
+                                periodExpression = expression;
                             }
                         }
                     }
@@ -275,7 +306,7 @@ public class RegularGrammarFileParser
     private RegularExpression union(RegularExpression baseRegularExpression,
                                     RegularExpression unionExpression)
     {
-        if (!isEmptyExpression(unionExpression) && isEmptyExpression(unionExpression))
+        if (!isEmptyExpression(unionExpression) && isEmptyExpression(baseRegularExpression))
         {
             baseRegularExpression = unionExpression;
         }
