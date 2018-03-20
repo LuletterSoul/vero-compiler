@@ -1,7 +1,7 @@
 package com.vero.compiler.scan.lexer;
 
-import static com.vero.compiler.scan.expression.RegularExpression.Literal;
-import static com.vero.compiler.scan.expression.RegularExpression.Range;
+
+import static com.vero.compiler.scan.expression.RegularExpression.*;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -12,8 +12,6 @@ import com.vero.compiler.scan.compress.CompressedTransitionTable;
 import com.vero.compiler.scan.converter.NFAConverter;
 import com.vero.compiler.scan.converter.RegularExpressionConverter;
 import com.vero.compiler.scan.generator.DFAModel;
-import com.vero.compiler.scan.lexer.Lexer;
-import com.vero.compiler.scan.lexer.Lexicon;
 import com.vero.compiler.scan.token.Token;
 
 
@@ -31,11 +29,17 @@ public class LexiconTest
         Lexicon lexicon = new Lexicon();
         Lexer global = lexicon.getDefaultLexer();
         Lexer keywords = global.createSubLexer();
+        Lexer unsigned_num = global.createSubLexer();
         Lexer xml = keywords.createSubLexer();
         Token ID = global.defineToken(
             Range('a', 'z').Concat(Range('a', 'z').Union(Range('0', '9')).Many()));
 
-        Token NUM = global.defineToken(Range('0', '9').Many1());
+        Token UNSIGNED_NUM = unsigned_num.defineToken(
+            Range('0', '9').Many().Concat(Symbol('.').Concat(Range('0', '9')).Concat(
+                Range('0', '9').Many()).Union(Empty())).Concat(
+                    Symbol('e').Concat(Symbol('+').Union(Symbol('-')).Union(Empty())).Concat(
+                        Range('0', '9').Concat(Range('0', '9').Many())).Union(Empty())));
+         Token NUM = global.defineToken(Range('0', '9').Many1());
 
         Token IF = keywords.defineToken(Literal("if"));
 
@@ -58,6 +62,7 @@ public class LexiconTest
         // if应该被识别为标识符
         engine.inputString("if");
         Assert.assertEquals(ID.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+
 
         engine.resetAndInputString("asaasasasaasasasa");
         Assert.assertEquals(ID.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
@@ -103,5 +108,18 @@ public class LexiconTest
         info.setLexerState(xml.getIndex());
         engine.resetAndInputString("xmlns");
         Assert.assertEquals(XMLNS.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+
+        info.setLexerState(unsigned_num.getIndex());
+        engine.resetAndInputString("25.55e+5");
+        Assert.assertEquals(UNSIGNED_NUM.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+
+        engine.resetAndInputString("25.55e-15");
+        Assert.assertEquals(UNSIGNED_NUM.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+
+        engine.resetAndInputString("12.59");
+        Assert.assertEquals(UNSIGNED_NUM.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+
+        engine.resetAndInputString("6e2");
+        Assert.assertEquals(UNSIGNED_NUM.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
     }
 }
