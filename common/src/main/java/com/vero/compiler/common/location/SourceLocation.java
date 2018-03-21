@@ -1,4 +1,4 @@
-package com.vero.compiler.lexer.source;
+package com.vero.compiler.common.location;
 
 
 import com.google.common.base.Objects;
@@ -21,7 +21,8 @@ public class SourceLocation
 
     private Integer column;
 
-    public SourceLocation() {
+    public SourceLocation()
+    {
         this.charIndex = 0;
         this.line = 0;
         this.column = 0;
@@ -44,11 +45,13 @@ public class SourceLocation
         this.column += tableSize;
     }
 
-    public void resetColumn() {
+    public void resetColumn()
+    {
         this.column = 0;
     }
 
-    public void resetColumn(Integer i) {
+    public void resetColumn(Integer i)
+    {
         this.column += i;
     }
 

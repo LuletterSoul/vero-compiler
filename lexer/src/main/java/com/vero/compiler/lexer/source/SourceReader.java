@@ -1,9 +1,11 @@
 package com.vero.compiler.lexer.source;
 
 
-import lombok.Getter;
-
 import java.io.File;
+
+import com.vero.compiler.common.location.SourceLocation;
+
+import lombok.Getter;
 
 
 /**

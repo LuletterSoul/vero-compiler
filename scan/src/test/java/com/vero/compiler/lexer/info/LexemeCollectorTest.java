@@ -2,12 +2,14 @@ package com.vero.compiler.lexer.info;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import com.vero.compiler.lexer.core.Lexeme;
 import com.vero.compiler.lexer.token.TokenType;
 import com.vero.compiler.scan.core.LexemeCollector;
 import com.vero.compiler.scan.core.LexiconContent;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -21,6 +23,7 @@ import com.vero.compiler.parser.RegularGrammarFileParser;
  * @since vero-compiler
  */
 
+@Slf4j
 public class LexemeCollectorTest {
 
     @Test
@@ -39,6 +42,12 @@ public class LexemeCollectorTest {
             Assert.assertEquals(tokens.get("myFloat"),typeDetails.get("<var>"));
             Assert.assertEquals(tokens.get("="),typeDetails.get("<operator>"));
             Assert.assertEquals(tokens.get(" "),typeDetails.get("<whitespace>"));
+            List<Lexeme> tokenStream = collector.getTokenStream();
+            tokenStream.forEach(detail->{
+                if (!detail.getContent().equals(" ")&&!detail.getContent().equals("\r\n")) {
+                    log.debug(detail.toString());
+                }
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }

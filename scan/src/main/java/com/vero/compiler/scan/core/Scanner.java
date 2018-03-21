@@ -5,12 +5,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vero.compiler.common.location.SourceLocation;
+import com.vero.compiler.common.location.SourceSpan;
 import com.vero.compiler.exception.ScanException;
 import com.vero.compiler.lexer.core.Lexeme;
 import com.vero.compiler.lexer.info.LexerTransitionInfo;
-import com.vero.compiler.lexer.source.SourceLocation;
 import com.vero.compiler.lexer.source.SourceReader;
-import com.vero.compiler.lexer.source.SourceSpan;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -152,23 +152,38 @@ public class Scanner
     private boolean isLastTokenSkippable()
     {
         int acceptTokenIndex = this.getLexerTransitionInfo().getTokenIndex(getLastState());
-        //
-        // if (acceptTokenIndex < 0 && RecoverErrors)
-        // {
-        // // eat one char to continue
-        // m_lexemeValueBuilder.Append((char)m_source.ReadChar());
-        //
-        // if (ErrorList != null)
-        // {
-        // ErrorList.AddError(LexicalErrorId,
-        // new SourceSpan(m_lastTokenStart, m_source.Location),
-        // m_lexemeValueBuilder.ToString());
-        // }
-        //
-        // return true;
-        // }
+
+//         if (acceptTokenIndex < 0)
+//         {
+////         // eat one char to continue
+////         lexemeValueBuilder.append(sourceReader.readChar());
+////         if (ErrorList != null)
+////         {
+////         ErrorList.AddError(LexicalErrorId,
+////         new SourceSpan(m_lastTokenStart, m_source.Location),
+////         m_lexemeValueBuilder.ToString());
+////         }
+//
+//         return true;
+//         }
 
         return acceptTokenIndex >= 0 && getTokenAttributes()[acceptTokenIndex].equals(c_skip);
+    }
+
+
+    public void SetTriviaTokens(int[] triviaTokenIndices)
+    {
+        for (int i = 0; i < tokenAttributes.length; i++) {
+            tokenAttributes[i] = 0;
+        }
+        for (int i = 0; i < triviaTokenIndices.length; i++)
+        {
+            int skipIndex = triviaTokenIndices[i];
+            if (skipIndex >= 0 && skipIndex < tokenAttributes.length)
+            {
+                tokenAttributes[skipIndex] = c_skip;
+            }
+        }
     }
 
     private void addHistory(Lexeme lexeme, boolean setTrivia)

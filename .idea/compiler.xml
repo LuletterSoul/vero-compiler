@@ -6,6 +6,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="common" />
         <module name="exception" />
         <module name="lexer" />
         <module name="parser" />
@@ -13,6 +14,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
+      <module name="common" target="1.8" />
       <module name="engine" target="1.8" />
       <module name="exception" target="1.8" />
       <module name="lexer" target="1.8" />

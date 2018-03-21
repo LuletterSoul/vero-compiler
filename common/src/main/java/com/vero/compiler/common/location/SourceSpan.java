@@ -1,4 +1,4 @@
-package com.vero.compiler.lexer.source;
+package com.vero.compiler.common.location;
 
 
 import com.google.common.base.Objects;
@@ -39,4 +39,5 @@ public class SourceSpan
     {
         return Objects.hashCode(endLocation, startLocation);
     }
+
 }

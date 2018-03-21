@@ -50,7 +50,6 @@ public class LexiconContent
     private Lexicon defineLexicon(RegularExpression[] regularExpressions)
     {
         Lexicon lexicon = new Lexicon();
-
         this.tokenDefinitions = new TokenDefinitions(lexicon, regularExpressions);
         return lexicon;
     }

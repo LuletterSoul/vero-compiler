@@ -12,6 +12,7 @@ import com.vero.compiler.exception.FilleNotReadable;
 import com.vero.compiler.exception.SourceFileNotFound;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -21,6 +22,7 @@ import lombok.Getter;
  */
 
 @Getter
+@Slf4j
 public class FileSourceReader extends SourceReader
 {
     private FileReader fileReader;
@@ -29,9 +31,9 @@ public class FileSourceReader extends SourceReader
 
     private char[] charBuffer;
 
-    private Integer charBufferSize = 64;
+    private Integer charBufferSize = 1024;
 
-    private Integer currentBufferPointer = 64;
+    private Integer currentBufferPointer = 1024;
 
     public FileSourceReader(FileReader fileReader, Integer charBufferSize)
     {
@@ -173,6 +175,12 @@ public class FileSourceReader extends SourceReader
     {
         return getCurrentBufferPointer().equals(getCharBufferSize());
     }
+
+    private boolean isPeekEndOfBuffer()
+    {
+        return getCharBufferSize().equals(getCurrentBufferPointer() + 1);
+    }
+
 
     private void movePointer()
     {

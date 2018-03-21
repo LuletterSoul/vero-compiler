@@ -1,1 +1,5 @@
 Float myFloat = 12.23;
+Integer myInter = 12345566;
+Complex my21451 = 1111e-123+123i;
+if else new char
+asdwqd23411 刘fewg

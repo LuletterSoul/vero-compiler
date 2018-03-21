@@ -1,8 +1,8 @@
 package com.vero.compiler.lexer.core;
 
 
+import com.vero.compiler.common.location.SourceSpan;
 import com.vero.compiler.lexer.info.LexerTransitionInfo;
-import com.vero.compiler.lexer.source.SourceSpan;
 
 import lombok.Data;
 
@@ -24,7 +24,8 @@ public class Lexeme
 
     private SourceSpan sourceSpan;
 
-    public Lexeme(LexerTransitionInfo lexerTransitionInfo, int stateIndex, SourceSpan sourceSpan, String content)
+    public Lexeme(LexerTransitionInfo lexerTransitionInfo, int stateIndex, SourceSpan sourceSpan,
+                  String content)
     {
         this.lexerTransitionInfo = lexerTransitionInfo;
         this.stateIndex = stateIndex;
@@ -42,4 +43,10 @@ public class Lexeme
         return this.lexerTransitionInfo.getTokenIndex(getStateIndex());
     }
 
+    @Override
+    public String toString()
+    {
+        return "Line:" + sourceSpan.getStartLocation().getLine() + ",Column:"
+               + sourceSpan.getStartLocation().getColumn() + ":[" + this.content + "]";
+    }
 }

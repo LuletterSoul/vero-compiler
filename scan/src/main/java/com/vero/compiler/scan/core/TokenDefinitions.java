@@ -1,6 +1,7 @@
 package com.vero.compiler.scan.core;
 
 
+import static com.vero.compiler.lexer.expression.RegularExpression.Literal;
 import static com.vero.compiler.lexer.expression.RegularExpression.Symbol;
 
 import java.util.ArrayList;
@@ -44,10 +45,16 @@ public class TokenDefinitions
     private Token COMPLEX;
 
     // 运算符
-    Token OPERATOR;
+    private Token OPERATOR;
 
-    //界符
-    Token DELIMITER;
+    // 界符
+    private Token DELIMITER;
+
+    private Token LINE_BREAKER;
+
+    private Token RE_DelimitedCommentSection;
+
+    private Token COMMENT;
 
     private List<Map<Integer, TokenType>> tokenIndex2TokenTypeList = new ArrayList<>();
 
@@ -60,10 +67,11 @@ public class TokenDefinitions
 
         // 关键字
         this.KEY_WORDS = lexer.defineToken(tokenExpressions[TokenType.KEY_WORDS.getPriority()]);
-        mapTokenIndexToTokenType(this.KEY_WORDS,TokenType.KEY_WORDS);
+        mapTokenIndexToTokenType(this.KEY_WORDS, TokenType.KEY_WORDS);
+
         // 变量名
-        this.VAR_NAME = lexer.defineToken(tokenExpressions[TokenType.VAR.getPriority()]);
-        mapTokenIndexToTokenType(this.VAR_NAME,TokenType.VAR);
+        this.VAR_NAME = lexer.defineToken(tokenExpressions[TokenType.VAR.getPriority()],"identifier");
+        mapTokenIndexToTokenType(this.VAR_NAME, TokenType.VAR);
 
         // 空格
         this.WHITESPACE = lexer.defineToken(Symbol(' ').Many());
@@ -73,7 +81,7 @@ public class TokenDefinitions
 
         // 无符号实数
         this.UNSIGNED_NUMBER = lexer.defineToken(ex);
-        mapTokenIndexToTokenType(this.UNSIGNED_NUMBER,TokenType.UNSIGNED_NUMBER);
+        mapTokenIndexToTokenType(this.UNSIGNED_NUMBER, TokenType.UNSIGNED_NUMBER);
 
         // 虚数
         this.COMPLEX = lexer.defineToken(ex.Concat(Symbol('+')).Concat(ex).Concat(Symbol('i')));
@@ -83,10 +91,13 @@ public class TokenDefinitions
         this.OPERATOR = lexer.defineToken(tokenExpressions[TokenType.OPERATOR.getPriority()]);
         mapTokenIndexToTokenType(this.OPERATOR, TokenType.OPERATOR);
 
-        //界符
+        // 界符
         this.DELIMITER = lexer.defineToken(tokenExpressions[TokenType.DELIMITER.getPriority()]);
         mapTokenIndexToTokenType(this.DELIMITER, TokenType.OPERATOR);
 
+        //回车换行
+        this.LINE_BREAKER = lexer.defineToken(Literal("\r\n"));
+        mapTokenIndexToTokenType(this.LINE_BREAKER, TokenType.LINE_BREAKER);
     }
 
     private void initMapping(Lexicon lexicon)
@@ -99,7 +110,7 @@ public class TokenDefinitions
         }
     }
 
-    private void mapTokenIndexToTokenType(Token token,TokenType tokenType)
+    private void mapTokenIndexToTokenType(Token token, TokenType tokenType)
     {
         Map<Integer, TokenType> tokenIndex2TokenType = tokenIndex2TokenTypeList.get(
             token.getLexerIndex());

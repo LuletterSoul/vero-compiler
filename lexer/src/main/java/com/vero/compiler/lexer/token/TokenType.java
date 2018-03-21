@@ -30,7 +30,8 @@ public enum TokenType {
     ALPHABET(11, "<alphabet>", "字母"),
     DELIMITER(12, "<delimiter>", "界符"),
     OPERATOR(13, "<operator>", "运算符"),
-    WHITESPACE(14,"<whitespace>","空格")
+    WHITESPACE(14,"<whitespace>","空格"),
+    LINE_BREAKER(15,"<line_breaker>","回车换行"),
     ;
 
     private Integer priority;

@@ -10,6 +10,8 @@ import java.util.Map;
 import com.vero.compiler.lexer.core.Lexeme;
 import com.vero.compiler.lexer.info.LexerTransitionInfo;
 import com.vero.compiler.lexer.token.TokenType;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -20,11 +22,14 @@ import lombok.extern.slf4j.Slf4j;
  */
 
 @Slf4j
+@Getter
 public class LexemeCollector
 {
     private Scanner scanner;
 
     private LexerTransitionInfo lexerTransitionInfo;
+
+    private List<Lexeme> tokenStream = new ArrayList<>();
 
     private List<Map<Integer, TokenType>> index2TokenType = new ArrayList<>();
 
@@ -38,24 +43,28 @@ public class LexemeCollector
 
     public Map<String, String> collect(File source)
     {
+        this.tokenStream.clear();
         scanner.changeSourceFile(source);
         Lexeme lexeme = scanner.read();
         Map<String, String> lexeme2TokenType = new HashMap<>();
         addLexemeEntry(lexeme, lexeme2TokenType);
-        log.debug("Gain a lexeme:[{}]",lexeme.getContent());
+        log.debug("Gain a lexeme:[{}]", lexeme.getContent());
         while (!lexeme.getTokenIndex().equals(lexerTransitionInfo.getEndOfStreamTokenIndex()))
         {
             lexeme = scanner.read();
             addLexemeEntry(lexeme, lexeme2TokenType);
-            log.debug("Gain a lexeme:[{}]",lexeme.getContent());
+            log.debug("Gain a lexeme:[{}]", lexeme.getContent());
         }
         return lexeme2TokenType;
     }
 
-    private void addLexemeEntry(Lexeme lexeme, Map<String, String> lexeme2TokenType) {
-        if (lexeme.isEndOfStream()) {
+    private void addLexemeEntry(Lexeme lexeme, Map<String, String> lexeme2TokenType)
+    {
+        if (lexeme.isEndOfStream())
+        {
             return;
         }
+        this.tokenStream.add(lexeme);
         TokenType tokenType = index2TokenType.get(lexerTransitionInfo.getLexerState()).get(
             lexeme.getTokenIndex());
         lexeme2TokenType.put(lexeme.getContent(), tokenType.getTypeDetail());

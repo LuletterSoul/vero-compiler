@@ -13,6 +13,7 @@
         <module>parser</module>
         <module>exception</module>
         <module>lexer</module>
+        <module>common</module>
     </modules>
     <dependencies>
         <dependency>

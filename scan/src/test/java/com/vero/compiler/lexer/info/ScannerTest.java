@@ -239,7 +239,7 @@ public class ScannerTest
             info.getTokenIndex(engine.getCurrentStateIndex()));
 
         // 复数
-        info.setLexerState(complex_number.getIndex());
+        info.setLexerState(global.getIndex());
         engine.resetAndInputString("1111e-123+123i");
         Assert.assertEquals(COMPLEX.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 

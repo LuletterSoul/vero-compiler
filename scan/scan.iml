@@ -16,6 +16,7 @@
     <orderEntry type="library" name="Arquillian JUnit:Release" level="project" />
     <orderEntry type="module" module-name="exception" />
     <orderEntry type="module" module-name="lexer" />
+    <orderEntry type="module" module-name="common" />
     <orderEntry type="module" module-name="parser" />
     <orderEntry type="library" name="Maven: commons-io:commons-io:2.4" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:guava:24.1-jre" level="project" />
