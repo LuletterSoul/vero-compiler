@@ -1,7 +1,11 @@
 package com.vero.compiler.scan.token;
 
 
+import com.vero.compiler.scan.exception.DuplicatedPriorityExcpetion;
+import jdk.nashorn.internal.codegen.DumpBytecode;
+
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 
@@ -22,9 +26,10 @@ public enum TokenType {
     EXPONENTIAL_PART(7,"<exponential_part>","指数部分"),
     INTEGER_EXPONENT(8,"<integer_exponent>","整指数"),
     UNSIGNED_INTEGER(9, "<unsigned_integer>", "无符号整数"),
-    ALPHABET(10, "<alphabet>", "字母"),
-    DELIMITER(11, "<delimiter>", "界符"),
-    OPERATOR(12, "<operator>", "运算符"),;
+    COMPLEX(10,"<complex>","复数"),
+    ALPHABET(11, "<alphabet>", "字母"),
+    DELIMITER(12, "<delimiter>", "界符"),
+    OPERATOR(13, "<operator>", "运算符"),;
 
     private Integer priority;
 
@@ -36,8 +41,12 @@ public enum TokenType {
     static
     {
         TokenType[] values = TokenType.values();
+        HashSet<Integer> uniquePriority = new HashSet<>();
         for (int i = 0; i < values.length; i++ )
         {
+            if (!uniquePriority.add(values[i].priority)) {
+                throw new DuplicatedPriorityExcpetion("Token must have unique priority");
+            }
             tokenTypeMap.put(values[i].type.toUpperCase(), values[i]);
         }
     }

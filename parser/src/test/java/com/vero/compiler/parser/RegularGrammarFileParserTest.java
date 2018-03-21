@@ -21,6 +21,9 @@ import com.vero.compiler.scan.lexer.Lexer;
 import com.vero.compiler.scan.lexer.Lexicon;
 import com.vero.compiler.scan.token.Token;
 import com.vero.compiler.scan.token.TokenType;
+import sun.misc.ASCIICaseInsensitiveComparator;
+
+import static com.vero.compiler.scan.expression.RegularExpression.Symbol;
 
 
 /**
@@ -98,6 +101,9 @@ public class RegularGrammarFileParserTest
         Lexer keywords = global.createSubLexer();
         Lexer numberAlphabet = global.createSubLexer();
         Lexer unsigned_number = global.createSubLexer();
+        Lexer integer = unsigned_number.createSubLexer();
+        Lexer unsigned_integer = integer.createSubLexer();
+        Lexer complex_number = global.createSubLexer();
         Lexer xml = keywords.createSubLexer();
 
         Token KEY_WORDS = keywords.defineToken(
@@ -114,23 +120,16 @@ public class RegularGrammarFileParserTest
 
         Lexer ids = numberAlphabet.createSubLexer();
 
-        Token VAR = ids.defineToken(tokenExpressions[TokenType.VAR.getPriority()]);
+        Token VAR = global.defineToken(tokenExpressions[TokenType.VAR.getPriority()]);
+
+//        Token ALPHABET_NUM = global.defineToken(tokenExpressions[TokenType.NUMBER_ALPHABET.getPriority()]);
 
 
-        Token UNSIGNED_NUMBER = unsigned_number.defineToken(
-            tokenExpressions[TokenType.UNSIGNED_NUMBER.getPriority()]);
-
-        Token UNSIGNED_INTEGER = unsigned_number.defineToken(
-                tokenExpressions[TokenType.UNSIGNED_INTEGER.getPriority()]);
-
-        Token DECIMAL_FRACTION_NUMBER = unsigned_number.defineToken(
-            tokenExpressions[TokenType.DECIMAL_FRACTION_NUMBER.getPriority()]);
-
-        Token EXPONENTIAL_PART = unsigned_number.defineToken(tokenExpressions[TokenType.EXPONENTIAL_PART.getPriority()]);
-
-
-
-
+        RegularExpression ex = tokenExpressions[TokenType.UNSIGNED_NUMBER.getPriority()];
+        Token UNSIGNED_NUMBER = global.defineToken(ex);
+//        Token INTEGER = integer.defineToken(tokenExpressions[TokenType.INTEGER.getPriority()]);
+//        Token UNSIGIGNED_INTEGER = integer.defineToken(tokenExpressions[TokenType.UNSIGNED_INTEGER.getPriority()]);
+        Token COMPLEX = global.defineToken(ex.Concat(Symbol('+')).Concat(ex).Concat(Symbol('i')));
         Token OPERATOR = global.defineToken(tokenExpressions[TokenType.OPERATOR.getPriority()]);
 
         RegularExpressionConverter converter = new NFAConverter(
@@ -150,35 +149,26 @@ public class RegularGrammarFileParserTest
         // Token XMLNS = xml.defineToken(Literal("xmlns"));
 
 
-        info.setLexerState(unsigned_number.getIndex());
-//        engine.resetAndInputString("25.55e+5");
-//        Assert.assertEquals(UNSIGNED_NUMBER.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
-
-//        engine.resetAndInputString("55");
-//        Assert.assertEquals(EXPONENTIAL_PART.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
-
-//        engine.resetAndInputString("2.1");
-//        Assert.assertEquals(DECIMAL_FRACTION_NUMBER.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
         // 默认上下文Lexer,环境为global
         // if应该被识别为标识符
-        info.setLexerState(ids.getIndex());
+        info.setLexerState(global.getIndex());
         engine.inputString("if");
         Assert.assertEquals(VAR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
         engine.resetMachineState();
-        engine.resetAndInputString("asa245asas24asaasasasa");
+        engine.resetAndInputString("a123saaas123gfgfdhaaaaa123aa");
         Assert.assertEquals(VAR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
         engine.resetMachineState();
-        engine.inputString("a1q23abrefw");
+        engine.inputString("a1111112465788");
         Assert.assertEquals(VAR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
-        engine.resetMachineState();
-        engine.inputString("31234dewdewdew");
-        Assert.assertTrue(engine.isAtStoppedState());
+//        engine.resetMachineState();
+//        engine.inputString("31234dewdewdew");
+//        Assert.assertEquals(ALPHABET_NUM.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
         engine.resetMachineState();
-        engine.inputString("gbg");
+        engine.inputString("ggwesfrsdgsdg");
         Assert.assertEquals(VAR.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
         engine.resetMachineState();
@@ -205,6 +195,9 @@ public class RegularGrammarFileParserTest
         Assert.assertEquals(KEY_WORDS.getIndex(),
             info.getTokenIndex(engine.getCurrentStateIndex()));
 
+
+
+        info.setLexerState(global.getIndex());
         engine.resetMachineState();
         engine.inputString("+");
         Assert.assertEquals(OPERATOR.getIndex(),
@@ -225,6 +218,7 @@ public class RegularGrammarFileParserTest
         Assert.assertEquals(OPERATOR.getIndex(),
             info.getTokenIndex(engine.getCurrentStateIndex()));
 
+        //切换至无符号数上下文
         info.setLexerState(unsigned_number.getIndex());
         engine.resetAndInputString("123456721e+55");
         Assert.assertEquals(UNSIGNED_NUMBER.getIndex(),
@@ -242,12 +236,17 @@ public class RegularGrammarFileParserTest
         engine.resetAndInputString("6e2");
         Assert.assertEquals(UNSIGNED_NUMBER.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
 
+        //切换至复数环境
+        info.setLexerState(complex_number.getIndex());
+        engine.resetAndInputString("1111e-123+123i");
+        Assert.assertEquals(COMPLEX.getIndex(), info.getTokenIndex(engine.getCurrentStateIndex()));
+
     }
 
     private RegularExpression[] transferDefinition2Token()
     {
         File testGrammarFile = new File(
-            "C:\\Users\\31370\\IdeaProjects\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar3.txt");
+            "F:\\GitHup\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar3.txt");
         RegularGrammarFileParser parser = new RegularGrammarFileParser(testGrammarFile);
         try
         {

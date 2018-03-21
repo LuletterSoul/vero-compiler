@@ -1,9 +1,13 @@
 package com.vero.compiler.parser;
 
 
+import static com.vero.compiler.scan.expression.RegularExpression.*;
+
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.vero.compiler.scan.exception.TokenMatchLostException;
 import com.vero.compiler.scan.expression.RegularExpression;
@@ -90,7 +94,6 @@ public class RegularGrammarFileParser
             String currentLeftPart = null;
             List<List<String>> rightParts = new ArrayList<>();
             List<String> currentRightPart = new ArrayList<>();
-            RegularGrammarProduction grammarProduction = new RegularGrammarProduction();
             for (Integer i = 0; i < chars.length;)
             {
                 if (!isScanningRightPart)
@@ -109,7 +112,6 @@ public class RegularGrammarFileParser
                         }
                         while (chars[i++ ] != '>');
                         currentLeftPart = concatSubProduction(queue);
-                        grammarProduction.setLeftPart(currentLeftPart);
                         log.debug("Parser gained a new terminal symbol : [{}]", currentLeftPart);
                     }
                 }
@@ -130,7 +132,8 @@ public class RegularGrammarFileParser
                             log.debug(
                                 "Parser gained production right part no terminal symbol : [{}]",
                                 newRightPartCompose);
-                            if (i+1<=chars.length&&chars[i]!='<'&&chars[i] != '|') {
+                            if (i + 1 <= chars.length && chars[i] != '<' && chars[i] != '|')
+                            {
                                 i = handleInputAlphabet(queue, chars, currentRightPart, i);
                             }
                             if (i + 1 > chars.length || chars[i] == '|')
@@ -171,22 +174,29 @@ public class RegularGrammarFileParser
             {
                 return;
             }
+            RegularGrammarProduction grammarProduction = new RegularGrammarProduction(
+                getNoTerminalSymbols(), currentLeftPart, rightParts);
             grammarProduction.setRightPart(rightParts);
             grammarProductionMap.put(currentLeftPart, grammarProduction);
             grammarProductions.add(grammarProduction);
         });
+        grammarProductionMap.forEach(
+            (leftName,
+             production) -> production.setGlobalRegularGrammarProductions(grammarProductionMap));
     }
 
-    private Integer handleInputAlphabet(Queue<Character> queue, char[] chars, List<String> currentRightPart, Integer i) {
-        while ( i != chars.length&&chars[i] != '<')
+    private Integer handleInputAlphabet(Queue<Character> queue, char[] chars,
+                                        List<String> currentRightPart, Integer i)
+    {
+        while (i != chars.length && chars[i] != '<')
         {
             if (chars[i] == '|')
             {
-                i++;
+                i++ ;
                 continue;
             }
             queue.add(chars[i]);
-            i++;
+            i++ ;
         }
         String newRightPartCompose = buildNewRightPart(queue, currentRightPart);
         log.debug("Parser gained production right part contactable string : [{}]",
@@ -199,8 +209,7 @@ public class RegularGrammarFileParser
             }
             while (chars[i++ ] != '>');
             newRightPartCompose = buildNewRightPart(queue, currentRightPart);
-            log.debug(
-                "Parser gained production right part no terminal symbol : [{}]",
+            log.debug("Parser gained production right part no terminal symbol : [{}]",
                 newRightPartCompose);
         }
         return i;
@@ -252,31 +261,27 @@ public class RegularGrammarFileParser
             List<List<String>> rightParts = c.getRightPart();
             TokenType currentTokenType = TokenType.getTokenTypeMap().get(
                 c.getLeftPart().toUpperCase());
-            RegularExpression baseRegularExpression = RegularExpression.Empty();
+            RegularExpression baseRegularExpression = Empty();
             boolean isDelayed = false;
+            Set<RegularExpression> computedRegularExpressions = new HashSet<>();
             for (List<String> r : rightParts)
             {
-                RegularExpression concatExpression = RegularExpression.Empty();
-                List<String> preComponents = new ArrayList<>();
+                RegularExpression concatExpression = Empty();
+                Queue<String> preComponents = new LinkedList<>();
                 for (String s : r)
                 {
-                    RegularExpression periodExpression = RegularExpression.Empty();
+                    RegularExpression periodExpression = Empty();
                     if (noTerminalSymbols.contains(s))
                     {
                         // 正规文法含右递归
                         if (s.equals(c.getLeftPart()))
                         {
-                            for (String component : preComponents)
+                            while (!preComponents.isEmpty())
                             {
+                                String component = preComponents.poll();
                                 // 寻找对应表达式生成闭包
-                                TokenType tokenType = tokenTypeMap.get(component.toUpperCase());
-                                // 如果当前Token的表达式还未生成,重新入队;
-                                if (tokenType == null)
-                                {
-                                    throw new TokenMatchLostException(
-                                        "Could not find corresponding no terminal production");
-                                }
-                                RegularExpression expression = this.tokenExpressions[tokenType.getPriority()];
+                                RegularExpression expression = findGeneratedExpression(
+                                    tokenTypeMap, component);
                                 if (expression == null)
                                 {
                                     queue.add(c);
@@ -286,7 +291,14 @@ public class RegularGrammarFileParser
                                 }
                                 periodExpression = concat(periodExpression, expression);
                             }
-                            periodExpression = periodExpression.Many();
+                            RegularExpression union = RegularExpression.Empty();
+                            for (RegularExpression ex : computedRegularExpressions)
+                            {
+                                //求所有闭包
+                                union = union(union,ex);
+                            }
+                            union = union.Many();
+                            periodExpression = union;
                         }
                         else
                         {
@@ -307,22 +319,32 @@ public class RegularGrammarFileParser
                     }
                     else
                     {
-                        if (s.indexOf('"') == -1&&s.length()!=1)
+                        if (s.indexOf('"') == -1 && s.length() != 1)
                         {
-                            periodExpression = RegularExpression.CharSet(s.toCharArray());
+                            String regex=".*[0-9a-zA-Z]+.*";
+                            Matcher m= Pattern.compile(regex).matcher(s);
+                            if (!m.matches()) {
+                                char chars[] = s.toCharArray();
+                                for (char z : chars) {
+                                    periodExpression = union(periodExpression, Symbol(z));
+                                }
+                            }
+                            else{
+                                periodExpression = CharSet(s.toCharArray());
+                            }
                         }
-                        else if(s.length()==1){
-                            periodExpression = RegularExpression.Symbol(s.charAt(0));
+                        else if (s.length() == 1)
+                        {
+                            periodExpression = Symbol(s.charAt(0));
                         }
                         else
                         {
-                            periodExpression = RegularExpression.Literal(
-                                s.substring(1, s.length() - 1));
+                            periodExpression = Literal(s.substring(1, s.length() - 1));
                         }
-
                     }
                     preComponents.add(s);
                     concatExpression = concat(concatExpression, periodExpression);
+                    computedRegularExpressions.add(concatExpression);
                 }
                 if (isDelayed)
                 {
@@ -337,6 +359,87 @@ public class RegularGrammarFileParser
         }
         return this.tokenExpressions;
     }
+
+
+    private RegularExpression findGeneratedExpression(Map<String, TokenType> tokenTypeMap,
+                                                      String component)
+    {
+        TokenType tokenType = tokenTypeMap.get(component.toUpperCase());
+        if (tokenType == null)
+        {
+            throw new TokenMatchLostException(
+                "Could not find corresponding no terminal production");
+        }
+        return this.tokenExpressions[tokenType.getPriority()];
+    }
+
+    // private RegularExpression buildPerTokenExpression(Map<String, TokenType> tokenTypeMap,
+    // RegularGrammarProduction right)
+    // {
+    // for (List<String> rightPart : right.getRightPart())
+    // {
+    // Queue<String> preComponents = new LinkedList<>();
+    // for (String part : rightPart)
+    // {
+    // {
+    // TokenType partTokenType = tokenTypeMap.get(part);
+    // RegularExpression periodExpression = this.tokenExpressions[partTokenType.getPriority()];
+    // RegularGrammarProduction production = this.getGrammarProductionMap().get(
+    // part);
+    // if (periodExpression == null)
+    // {
+    // if (production != null)
+    // {
+    // periodExpression = buildPerTokenExpression(tokenTypeMap, production);
+    // }
+    // else
+    // {
+    // if (part.indexOf('"') == -1 && part.length() != 1)
+    // {
+    // return CharSet(part.toCharArray());
+    // }
+    // else if (part.length() == 1)
+    // {
+    // return Symbol(part.charAt(0));
+    // }
+    // else
+    // {
+    // return Literal(part.substring(1, part.length() - 1));
+    // }
+    // }
+    // }
+    // else {
+    // if (production != null)
+    // {
+    // //右递归式
+    // if (production.getLeftPart().equals(part)) {
+    // while (!preComponents.isEmpty()) {
+    // String component = preComponents.poll();
+    // // 寻找对应表达式生成闭包
+    // TokenType tokenType = tokenTypeMap.get(component.toUpperCase());
+    // // 如果当前Token的表达式还未生成,重新入队;
+    // if (tokenType == null)
+    // {
+    // throw new TokenMatchLostException(
+    // "Could not find corresponding no terminal production");
+    // }
+    // RegularExpression expression = this.tokenExpressions[tokenType.getPriority()];
+    // periodExpression = concat(periodExpression, expression);
+    // }
+    // periodExpression = buildPerTokenExpression(tokenTypeMap, production);
+    // }
+    // else{
+    // periodExpression = concat(periodExpression, buildPerTokenExpression(tokenTypeMap,
+    // production));
+    // }
+    //
+    // }
+    // }
+    // }
+    // preComponents.add(part);
+    // }
+    // }
+    // }
 
     private RegularExpression union(RegularExpression baseRegularExpression,
                                     RegularExpression unionExpression)
@@ -402,7 +505,7 @@ public class RegularGrammarFileParser
                 {
                     wrap.add(aChar);
                 }
-                RegularExpression newExpression = RegularExpression.CharSet(wrap);
+                RegularExpression newExpression = CharSet(wrap);
                 if (isFirstSetUpConcat)
                 {
                     isFirstSetUpConcat = false;
