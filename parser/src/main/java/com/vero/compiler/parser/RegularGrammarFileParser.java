@@ -1,7 +1,7 @@
 package com.vero.compiler.parser;
 
 
-import static com.vero.compiler.scan.expression.RegularExpression.*;
+import static com.vero.compiler.lexer.expression.RegularExpression.*;
 
 import java.io.*;
 import java.util.*;
@@ -9,10 +9,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.vero.compiler.scan.exception.TokenMatchLostException;
-import com.vero.compiler.scan.expression.RegularExpression;
-import com.vero.compiler.scan.expression.RegularExpressionType;
-import com.vero.compiler.scan.token.TokenType;
+import com.vero.compiler.exception.TokenMatchLostException;
+import com.vero.compiler.exception.TokenTypeNoDefinitionException;
+import com.vero.compiler.lexer.expression.RegularExpression;
+import com.vero.compiler.lexer.expression.RegularExpressionType;
+import com.vero.compiler.lexer.token.TokenType;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +58,29 @@ public class RegularGrammarFileParser
 
     private RegularExpression[] tokenExpressions = new RegularExpression[TokenType.getTokenTypeMap().size()];
 
-    public RegularGrammarFileParser(File grammarSource)
+    public RegularGrammarFileParser()
+    {
+        nonTerminalSymbol = new ArrayList<>();
+        terminalSymbol = new ArrayList<>();
+        grammarProductionDefinitions = new ArrayList<>();
+    }
+
+    public RegularExpression[] parse(File grammarSource)
+        throws IOException
+    {
+        BufferedReader bufferedReader = loadGrammarSource(grammarSource);
+        String str = null;
+        while ((str = bufferedReader.readLine()) != null)
+        {
+            grammarProductionDefinitions.add(str.replace(" ", ""));
+        }
+        this.parseDefinitions();
+        this.transfer();
+        return this.tokenExpressions;
+    }
+
+    private BufferedReader loadGrammarSource(File grammarSource)
+        throws UnsupportedEncodingException
     {
         this.grammarSource = grammarSource;
         try
@@ -68,21 +91,7 @@ public class RegularGrammarFileParser
         {
             e.printStackTrace();
         }
-        nonTerminalSymbol = new ArrayList<>();
-        terminalSymbol = new ArrayList<>();
-        grammarProductionDefinitions = new ArrayList<>();
-    }
-
-    public void parse()
-        throws IOException
-    {
-        BufferedReader bufferedReader = new BufferedReader(
-            new InputStreamReader(getFileReader(), "Unicode"));
-        String str = null;
-        while ((str = bufferedReader.readLine()) != null)
-        {
-            grammarProductionDefinitions.add(str);
-        }
+        return new BufferedReader(new InputStreamReader(getFileReader(), "Unicode"));
     }
 
     public void parseDefinitions()
@@ -261,6 +270,7 @@ public class RegularGrammarFileParser
             List<List<String>> rightParts = c.getRightPart();
             TokenType currentTokenType = TokenType.getTokenTypeMap().get(
                 c.getLeftPart().toUpperCase());
+            validateLeftPart(c, currentTokenType);
             RegularExpression baseRegularExpression = Empty();
             boolean isDelayed = false;
             Set<RegularExpression> computedRegularExpressions = new HashSet<>();
@@ -294,8 +304,8 @@ public class RegularGrammarFileParser
                             RegularExpression union = RegularExpression.Empty();
                             for (RegularExpression ex : computedRegularExpressions)
                             {
-                                //求所有闭包
-                                union = union(union,ex);
+                                // 求所有闭包
+                                union = union(union, ex);
                             }
                             union = union.Many();
                             periodExpression = union;
@@ -321,15 +331,18 @@ public class RegularGrammarFileParser
                     {
                         if (s.indexOf('"') == -1 && s.length() != 1)
                         {
-                            String regex=".*[0-9a-zA-Z]+.*";
-                            Matcher m= Pattern.compile(regex).matcher(s);
-                            if (!m.matches()) {
+                            String regex = ".*[0-9a-zA-Z]+.*";
+                            Matcher m = Pattern.compile(regex).matcher(s);
+                            if (!m.matches())
+                            {
                                 char chars[] = s.toCharArray();
-                                for (char z : chars) {
+                                for (char z : chars)
+                                {
                                     periodExpression = union(periodExpression, Symbol(z));
                                 }
                             }
-                            else{
+                            else
+                            {
                                 periodExpression = CharSet(s.toCharArray());
                             }
                         }
@@ -360,6 +373,15 @@ public class RegularGrammarFileParser
         return this.tokenExpressions;
     }
 
+    private void validateLeftPart(RegularGrammarProduction c, TokenType currentTokenType)
+    {
+        if (currentTokenType == null)
+        {
+            throw new TokenTypeNoDefinitionException(
+                "[ " + c.getLeftPart() + " ]" + " don't exist definition in system.All no terminals should be one of "
+                                                     + TokenType.getNoTerminalNames());
+        }
+    }
 
     private RegularExpression findGeneratedExpression(Map<String, TokenType> tokenTypeMap,
                                                       String component)

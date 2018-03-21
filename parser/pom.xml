@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>com.vero.compiler</groupId>
-            <artifactId>scan</artifactId>
+            <artifactId>lexer</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>

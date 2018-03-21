@@ -11,6 +11,8 @@
     <modules>
 
         <module>parser</module>
+        <module>exception</module>
+        <module>lexer</module>
     </modules>
     <dependencies>
         <dependency>
