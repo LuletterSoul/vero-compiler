@@ -301,7 +301,7 @@ public class ScannerTest
         Token DELIMITER = global.defineToken(tokenExpressions[TokenType.DELIMITER.getPriority()]);
 
         File scannedFile = new File(
-            "F:\\GitHup\\vero-compiler\\scan\\src\\test\\resource\\scannedTest3.txt");
+            "F:\\GitHup\\vero-compiler\\scan\\src\\test\\resource\\scannedTest4.txt");
 
         RegularExpressionConverter converter = new NFAConverter(
             lexicon.getCompactCharSetManager());
