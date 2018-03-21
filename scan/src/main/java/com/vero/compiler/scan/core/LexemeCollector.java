@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.vero.compiler.common.error.CompilationError;
 import com.vero.compiler.lexer.core.Lexeme;
 import com.vero.compiler.lexer.info.LexerTransitionInfo;
 import com.vero.compiler.lexer.token.TokenType;
@@ -33,6 +34,8 @@ public class LexemeCollector
 
     private List<Map<Integer, TokenType>> index2TokenType = new ArrayList<>();
 
+    private List<CompilationError> errors = new ArrayList<>();
+
     public LexemeCollector(Scanner scanner, LexerTransitionInfo lexerTransitionInfo,
                            TokenDefinitions tokenDefinitions)
     {
@@ -55,6 +58,8 @@ public class LexemeCollector
             addLexemeEntry(lexeme, lexeme2TokenType);
             log.debug("Gain a lexeme:[{}]", lexeme.getContent());
         }
+        //保存扫描过程的错误
+        this.errors = scanner.getErrorsList();
         return lexeme2TokenType;
     }
 

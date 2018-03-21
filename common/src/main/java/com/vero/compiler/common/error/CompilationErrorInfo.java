@@ -19,14 +19,14 @@ public class CompilationErrorInfo
 
     private CompilationStage stage;
 
-    private String messageTemplate;
+//    private String messageTemplate;
 
-    public CompilationErrorInfo(Integer id, Integer level, CompilationStage stage,
-                                String messageTemplate)
+
+    public CompilationErrorInfo(Integer id, Integer level, CompilationStage stage)
     {
         this.id = id;
         this.level = level;
         this.stage = stage;
-        this.messageTemplate = messageTemplate;
+//        this.messageTemplate = messageTemplate;
     }
 }

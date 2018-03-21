@@ -5,6 +5,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vero.compiler.common.error.CompilationError;
+import com.vero.compiler.common.error.CompilationErrorInfo;
+import com.vero.compiler.common.error.CompilationStage;
 import com.vero.compiler.common.location.SourceLocation;
 import com.vero.compiler.common.location.SourceSpan;
 import com.vero.compiler.exception.ScanException;
@@ -56,6 +59,10 @@ public class Scanner
 
     private boolean throwAtReadingAfterEndOfStream = false;
 
+    private List<CompilationError> errorsList = new ArrayList<>();
+
+    private Integer currentErrorId = 0;
+
     public Scanner(LexerTransitionInfo lexerTransitionInfo)
     {
         this.lexerTransitionInfo = lexerTransitionInfo;
@@ -75,8 +82,6 @@ public class Scanner
         this(lexerTransitionInfo);
         this.sourceReader = sourceReader;
     }
-
-
 
     private void initialize()
     {
@@ -109,7 +114,8 @@ public class Scanner
                 {
                     throw new ScanException("The scanner has reached the end of stream");
                 }
-                addHistory(new Lexeme(this.lexerTransitionInfo, this.lexerTransitionInfo.getEndOfStreamState(),
+                addHistory(new Lexeme(this.lexerTransitionInfo,
+                    this.lexerTransitionInfo.getEndOfStreamState(),
                     new SourceSpan(this.lastTokenStart, this.lastTokenStart), null), true);
                 break;
             }
@@ -153,30 +159,34 @@ public class Scanner
     {
         int acceptTokenIndex = this.getLexerTransitionInfo().getTokenIndex(getLastState());
 
-//         if (acceptTokenIndex < 0)
-//         {
-////         // eat one char to continue
-////         lexemeValueBuilder.append(sourceReader.readChar());
-////         if (ErrorList != null)
-////         {
-////         ErrorList.AddError(LexicalErrorId,
-////         new SourceSpan(m_lastTokenStart, m_source.Location),
-////         m_lexemeValueBuilder.ToString());
-////         }
-//
-//         return true;
-//         }
+        if (acceptTokenIndex < 0)
+        {
+            // eat one char to continue
+            lexemeValueBuilder.append(sourceReader.readChar());
+            if (this.errorsList != null)
+            {
+                Integer level = getLexerTransitionInfo().getLexerState();
+                CompilationErrorInfo info = new CompilationErrorInfo(getCurrentErrorId(), level,
+                    CompilationStage.Scanning);
+                SourceSpan errorPosition = new SourceSpan(getLastTokenStart(),
+                    sourceReader.getLocation());
+                CompilationError error = new CompilationError(info, lexemeValueBuilder.toString(),
+                    errorPosition);
+                errorsList.add(error);
+            }
+            return true;
+        }
 
-        return acceptTokenIndex >= 0 && getTokenAttributes()[acceptTokenIndex].equals(c_skip);
+        return getTokenAttributes()[acceptTokenIndex].equals(c_skip);
     }
-
 
     public void SetTriviaTokens(int[] triviaTokenIndices)
     {
-        for (int i = 0; i < tokenAttributes.length; i++) {
+        for (int i = 0; i < tokenAttributes.length; i++ )
+        {
             tokenAttributes[i] = 0;
         }
-        for (int i = 0; i < triviaTokenIndices.length; i++)
+        for (int i = 0; i < triviaTokenIndices.length; i++ )
         {
             int skipIndex = triviaTokenIndices[i];
             if (skipIndex >= 0 && skipIndex < tokenAttributes.length)

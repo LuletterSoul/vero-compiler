@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.vero.compiler.common.error.CompilationError;
 import com.vero.compiler.lexer.core.Lexeme;
 import com.vero.compiler.lexer.token.TokenType;
 import com.vero.compiler.scan.core.LexemeCollector;
@@ -43,11 +44,13 @@ public class LexemeCollectorTest {
             Assert.assertEquals(tokens.get("="),typeDetails.get("<operator>"));
             Assert.assertEquals(tokens.get(" "),typeDetails.get("<whitespace>"));
             List<Lexeme> tokenStream = collector.getTokenStream();
+            List<CompilationError> errors = collector.getErrors();
             tokenStream.forEach(detail->{
                 if (!detail.getContent().equals(" ")&&!detail.getContent().equals("\r\n")) {
                     log.debug(detail.toString());
                 }
             });
+            errors.forEach(e -> log.error(e.toString()));
         } catch (IOException e) {
             e.printStackTrace();
         }
