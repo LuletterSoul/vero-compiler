@@ -14,6 +14,7 @@
         <module>exception</module>
         <module>lexer</module>
         <module>common</module>
+        <module>syntax</module>
     </modules>
     <dependencies>
         <dependency>
