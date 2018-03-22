@@ -6,6 +6,8 @@ import com.vero.compiler.lexer.info.LexerTransitionInfo;
 
 import lombok.Data;
 
+import java.util.Objects;
+
 
 /**
  * @author XiangDe Liu qq313700046@icloud.com .
@@ -29,7 +31,12 @@ public class Lexeme
     {
         this.lexerTransitionInfo = lexerTransitionInfo;
         this.stateIndex = stateIndex;
-        this.content = content;
+        if (Objects.isNull(content)) {
+            this.content = "";
+        }
+        else{
+            this.content = content;
+        }
         this.sourceSpan = sourceSpan;
     }
 

@@ -11,6 +11,8 @@ import com.vero.compiler.lexer.info.LexerTransitionInfo;
 import com.vero.compiler.lexer.source.FileSourceReader;
 import com.vero.compiler.lexer.source.SourceReader;
 
+import lombok.Getter;
+
 
 /**
  * @author XiangDe Liu qq313700046@icloud.com .
@@ -18,7 +20,8 @@ import com.vero.compiler.lexer.source.SourceReader;
  * @since vero-compiler
  */
 
-public class DefaultLexiconContent implements LexiconContent
+@Getter
+public abstract class DefaultLexiconContent implements LexiconContent
 {
 
     protected Lexicon lexicon;
@@ -31,15 +34,28 @@ public class DefaultLexiconContent implements LexiconContent
 
     protected Scanner scanner;
 
-    protected TokenDefinitions definitions;
+    protected TokenDefinitions tokenDefinitions;
 
-    public DefaultLexiconContent(RegularExpression[] regularExpressions)
+    public DefaultLexiconContent()
     {
-        this.lexicon = defineLexicon(regularExpressions);
+        this.lexicon = defineLexicon();
+        // todo handleExpression:define the default regular expression of lexicon content;
         initContent();
     }
 
-    private void initContent()
+    public DefaultLexiconContent(RegularExpression[] regularExpressions)
+    {
+        this.lexicon = defineLexicon();
+        this.handleExpressions(regularExpressions);
+        initContent();
+    }
+
+    public DefaultLexiconContent(TokenDefinitions tokenDefinitions)
+    {
+        this.tokenDefinitions = tokenDefinitions;
+    }
+
+    protected void initContent()
     {
         RegularExpressionConverter converter = new NFAConverter(
             lexicon.getCompactCharSetManager());
@@ -50,16 +66,24 @@ public class DefaultLexiconContent implements LexiconContent
         this.scanner = new Scanner(info, new FileSourceReader());
     }
 
-    private Lexicon defineLexicon(RegularExpression[] regularExpressions)
+    @Override
+    public Lexicon defineLexicon()
     {
-        Lexicon lexicon = new Lexicon();
-        this.definitions = new TokenDefinitions(lexicon, regularExpressions);
-        return lexicon;
+        return new Lexicon();
     }
+
+    @Override
+    public abstract void handleExpressions(RegularExpression[] regularExpressions);
 
     @Override
     public LexemeCollector buildCollector()
     {
         return new DefaultLexemeCollector(this.scanner, this.info);
+    }
+
+    @Override
+    public TokenDefinitions getDefinitions()
+    {
+        return tokenDefinitions;
     }
 }

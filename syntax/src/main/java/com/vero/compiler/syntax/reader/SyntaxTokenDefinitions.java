@@ -1,7 +1,8 @@
 package com.vero.compiler.syntax.reader;
 
 
-import static com.vero.compiler.lexer.expression.RegularExpression.*;
+import static com.vero.compiler.lexer.expression.RegularExpression.Range;
+import static com.vero.compiler.lexer.expression.RegularExpression.Symbol;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +10,10 @@ import java.util.List;
 import com.vero.compiler.lexer.core.Lexer;
 import com.vero.compiler.lexer.core.Lexicon;
 import com.vero.compiler.lexer.expression.RegularExpression;
-import com.vero.compiler.lexer.expression.RegularExpressionType;
 import com.vero.compiler.lexer.token.Token;
+import com.vero.compiler.scan.core.DefaultTokenDefinitions;
+
+import lombok.Getter;
 
 
 /**
@@ -19,54 +22,58 @@ import com.vero.compiler.lexer.token.Token;
  * @since vero-compiler
  */
 
-public class SyntaxTokenDefinitions
+@Getter
+public class SyntaxTokenDefinitions extends DefaultTokenDefinitions
 {
 
-    private Token SYTAX_NO_TEMINAL;
+    private Token SYNTAX_NO_TEMINAL;
 
     private Token SYNTAX_TOKEN;
 
     private Token BANF_DELIMITER;
 
-    private List<RegularExpression> tokenExpressions;
+    private RegularExpression lexerTokenExpressionsUnion;
 
     private Lexicon syntaxLexicon;
 
-    public SyntaxTokenDefinitions(Lexicon syntaxLexicon, List<RegularExpression> tokenExpressions)
+    private RegularExpression[] syntaxExpressions;
+
+    public SyntaxTokenDefinitions(Lexicon syntaxLexicon,
+                                  RegularExpression lexerTokenExpressionUnion)
     {
+        this.lexerTokenExpressionsUnion = lexerTokenExpressionUnion;
         this.syntaxLexicon = syntaxLexicon;
-        this.tokenExpressions = tokenExpressions;
+        this.buildSyntaxRegularExpressions();
     }
 
-    private RegularExpression[] buildSyntaxRegularExpressions()
+    private void buildSyntaxRegularExpressions()
     {
         Lexer syntaxLexer = this.syntaxLexicon.getDefaultLexer();
 
         List<RegularExpression> syntaxRegularExpressionList = new ArrayList<>();
 
-        RegularExpression tokenRegularExpression = Empty();
-        for (RegularExpression t : this.tokenExpressions)
-        {
-            if (tokenRegularExpression.getExpressionType().equals(RegularExpressionType.Empty))
-            {
-                tokenRegularExpression = t;
-            }
-            else
-            {
-                tokenRegularExpression = tokenRegularExpression.Union(t);
-            }
-        }
         RegularExpression syntaxNoTerminal = RegularExpression.Symbol('<').Concat(
             Range('A', 'Z').Union(Symbol('_')).Many1()).Concat(Symbol('>'));
-        Token SYNTAX_NO_TEMINAL = syntaxLexer.defineToken(syntaxNoTerminal);
+        this.SYNTAX_NO_TEMINAL = syntaxLexer.defineToken(syntaxNoTerminal);
         syntaxRegularExpressionList.add(syntaxNoTerminal);
 
-        Token SYNTAX_TOKEN = syntaxLexer.defineToken(tokenRegularExpression);
-        syntaxRegularExpressionList.add(tokenRegularExpression);
+        this.SYNTAX_TOKEN = syntaxLexer.defineToken(this.lexerTokenExpressionsUnion);
+        syntaxRegularExpressionList.add(this.lexerTokenExpressionsUnion);
 
         RegularExpression BANF_delimiter = RegularExpression.Literal("::=");
-        Token BANF_DELIMITER = syntaxLexer.defineToken(BANF_delimiter);
+        this.BANF_DELIMITER = syntaxLexer.defineToken(BANF_delimiter);
         syntaxRegularExpressionList.add(BANF_delimiter);
-        return (RegularExpression[])syntaxRegularExpressionList.toArray();
+
+        this.syntaxExpressions = transferToArray(syntaxRegularExpressionList);
+    }
+
+    private RegularExpression[] transferToArray(List<RegularExpression> syntaxRegularExpressionList)
+    {
+        RegularExpression[] regularExpressions = new RegularExpression[syntaxRegularExpressionList.size()];
+        for (int i = 0; i < syntaxRegularExpressionList.size(); i++ )
+        {
+            regularExpressions[i] = syntaxRegularExpressionList.get(i);
+        }
+        return regularExpressions;
     }
 }

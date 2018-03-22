@@ -21,7 +21,7 @@ public interface LexemeCollector
 
     void postPerLexemeCollected(Lexeme lexeme);
 
-    List<Lexeme> getLexemeStream();
+    List<Lexeme>  getLexemeStream();
 
     List<CompilationError> getErrors();
 }

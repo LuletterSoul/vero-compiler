@@ -8,6 +8,7 @@ import java.util.Map;
 import com.vero.compiler.common.error.CompilationError;
 import com.vero.compiler.lexer.core.Lexeme;
 import com.vero.compiler.lexer.token.TokenType;
+import com.vero.compiler.scan.core.LexemeCollector;
 import com.vero.compiler.scan.core.TokenLexemeCollector;
 import com.vero.compiler.scan.core.TokenLexiconContent;
 import lombok.extern.slf4j.Slf4j;
@@ -29,15 +30,15 @@ public class TokenLexemeCollectorTest {
 
     @Test
     public void collect() {
-        File tokenDefinitions = new File("F:\\GitHup\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar3.txt");
-        File sourceFile = new File("F:\\GitHup\\vero-compiler\\scan\\src\\test\\resource\\scannedTest3.txt");
+        File tokenDefinitions = new File("C:\\Users\\31370\\IdeaProjects\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar3.txt");
+        File sourceFile = new File("C:\\Users\\31370\\IdeaProjects\\vero-compiler\\scan\\src\\test\\resource\\scannedTest3.txt");
 
         RegularGrammarFileParser parser = new RegularGrammarFileParser();
         try {
             Map<String, String> typeDetails = TokenType.getTypeDetails();
             RegularExpression[] tokenExpressions = parser.parse(tokenDefinitions);
             TokenLexiconContent content = new TokenLexiconContent(tokenExpressions);
-            TokenLexemeCollector collector = content.buildCollector();
+            LexemeCollector collector = content.buildCollector();
             Map<String, String> tokens = collector.collect(sourceFile);
             Assert.assertEquals(tokens.get("Float"),typeDetails.get("<keywords>"));
             Assert.assertEquals(tokens.get("myFloat"),typeDetails.get("<var>"));

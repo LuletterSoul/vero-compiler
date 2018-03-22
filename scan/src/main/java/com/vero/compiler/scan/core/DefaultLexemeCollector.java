@@ -50,17 +50,22 @@ public class DefaultLexemeCollector implements LexemeCollector
         prepareCollect(source);
         Lexeme lexeme = scanner.read();
         postPerLexemeCollected(lexeme);
-        log.debug("Gain a lexeme:[{}]", lexeme.getContent());
+        debugMessage(lexeme);
         while (!lexeme.getTokenIndex().equals(lexerTransitionInfo.getEndOfStreamTokenIndex()))
         {
             lexeme = scanner.read();
-            this.lexemeStream.add(lexeme);
             postPerLexemeCollected(lexeme);
-            log.debug("Gain a lexeme:[{}]", lexeme.getContent());
+            debugMessage(lexeme);
         }
         // 保存扫描过程的错误
         this.errors = scanner.getErrorsList();
         return lexeme2TokenType;
+    }
+
+    private void debugMessage(Lexeme lexeme) {
+        if (!lexeme.getContent().equals(" ")&&!lexeme.getContent().equals("\r\n")) {
+            log.debug("Eat a lexeme:[{}]", lexeme.getContent());
+        }
     }
 
     private void prepareCollect(File source)
@@ -78,8 +83,8 @@ public class DefaultLexemeCollector implements LexemeCollector
     @Override
     public void postPerLexemeCollected(Lexeme lexeme)
     {
-        if (lexeme.isEndOfStream())
-        {
+        if (lexeme.isEndOfStream()) {
+            lexeme.setContent("EOF");
             return;
         }
         this.lexemeStream.add(lexeme);

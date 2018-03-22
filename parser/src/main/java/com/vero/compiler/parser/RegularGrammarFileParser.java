@@ -91,7 +91,7 @@ public class RegularGrammarFileParser
         {
             e.printStackTrace();
         }
-        return new BufferedReader(new InputStreamReader(getFileReader(), "Unicode"));
+        return new BufferedReader(new InputStreamReader(getFileReader(), "UTF-8"));
     }
 
     public void parseDefinitions()
@@ -122,6 +122,9 @@ public class RegularGrammarFileParser
                         while (chars[i++ ] != '>');
                         currentLeftPart = concatSubProduction(queue);
                         log.debug("Parser gained a new terminal symbol : [{}]", currentLeftPart);
+                    }
+                    else{
+                        ++i;
                     }
                 }
                 else

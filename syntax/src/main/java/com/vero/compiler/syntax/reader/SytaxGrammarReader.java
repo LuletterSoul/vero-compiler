@@ -9,9 +9,9 @@ package com.vero.compiler.syntax.reader;
 public class SytaxGrammarReader
 {
 
-    private SyntaxLexiconBase lexiconBase;
+    private SyntaxContentDefiner lexiconBase;
 
-    public SytaxGrammarReader(SyntaxLexiconBase lexiconBase)
+    public SytaxGrammarReader(SyntaxContentDefiner lexiconBase)
     {
         this.lexiconBase = lexiconBase;
     }

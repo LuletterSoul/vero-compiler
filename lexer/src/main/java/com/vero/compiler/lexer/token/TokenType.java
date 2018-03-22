@@ -32,6 +32,7 @@ public enum TokenType {
     OPERATOR(13, "<operator>", "运算符"),
     WHITESPACE(14,"<whitespace>","空格"),
     LINE_BREAKER(15,"<line_breaker>","回车换行"),
+    EOF(16, "<eof>", "文件结尾"),
     ;
 
     private Integer priority;

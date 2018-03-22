@@ -26,10 +26,14 @@ public class TokenLexemeCollector extends DefaultLexemeCollector
     private List<Map<Integer, TokenType>> index2TokenType;
 
     public TokenLexemeCollector(Scanner scanner, LexerTransitionInfo lexerTransitionInfo,
-                                TokenDefinitions tokenDefinitions)
+                                TokenDefinitions lexerTokenDefinitions)
     {
         super(scanner, lexerTransitionInfo);
-        this.index2TokenType = tokenDefinitions.getTokenIndex2TokenTypeList();
+        if (lexerTokenDefinitions instanceof LexerTokenDefinitions)
+        {
+            LexerTokenDefinitions definitions = (LexerTokenDefinitions)lexerTokenDefinitions;
+            this.index2TokenType = definitions.getTokenIndex2TokenTypeList();
+        }
     }
 
     @Override
@@ -41,6 +45,11 @@ public class TokenLexemeCollector extends DefaultLexemeCollector
 
     private void addLexemeEntry(Lexeme lexeme)
     {
+        if (lexeme.isEndOfStream())
+        {
+            lexeme2TokenType.put(lexeme.getContent(), TokenType.EOF.getType());
+            return;
+        }
         TokenType tokenType = index2TokenType.get(lexerTransitionInfo.getLexerState()).get(
             lexeme.getTokenIndex());
         lexeme2TokenType.put(lexeme.getContent(), tokenType.getTypeDetail());
