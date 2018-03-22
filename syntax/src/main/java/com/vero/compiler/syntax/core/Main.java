@@ -3,8 +3,10 @@ package com.vero.compiler.syntax.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.Charsets;
@@ -18,8 +20,9 @@ public class Main
     {
         try
         {
-            Files.readLines(new File(
-                "C:\\Users\\31370\\IdeaProjects\\vero-compiler\\syntax\\src\\main\\resources\\simple1.txt"),
+            URL f1 = Thread.currentThread().getContextClassLoader().getResource("prod.txt");
+
+            Files.readLines(new File(Objects.requireNonNull(f1).getFile()),
                 Charsets.UTF_8).stream().filter(line -> line.length() > 1).forEach(
                     GrammarProductionManager::addProduction);
         }
@@ -30,8 +33,8 @@ public class Main
 
         try
         {
-            Files.readLines(new File(
-                "C:\\Users\\31370\\IdeaProjects\\vero-compiler\\syntax\\src\\main\\resources\\input.txt"),
+            URL f2 = Thread.currentThread().getContextClassLoader().getResource("input.txt");
+            Files.readLines(new File(Objects.requireNonNull(f2).getFile()),
                 Charsets.UTF_8).stream().filter(line -> line.length() > 1).forEach(Input::addLine);
         }
         catch (IOException e)

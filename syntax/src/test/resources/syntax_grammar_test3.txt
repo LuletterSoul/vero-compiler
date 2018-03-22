@@ -1,0 +1,9 @@
+<S_TEST_TEST> ::= <S____LOVE> ; <S> <I____love_you_QING_xiu>;
+<__@> ::= Integer := <E> ;
+<S> ::= Float ( <L> ) ;
+<E> ::= new ;
+<E> ::= else ;
+<E> ::= <E> + <E> ;
+<E> ::= ( <SBBBWR_RDET> , <E> ) ;
+<L> ::= <E> ;
+<L> ::= <L_LOVE_YOU> , <E> ;

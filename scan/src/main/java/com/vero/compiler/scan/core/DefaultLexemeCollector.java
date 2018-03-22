@@ -62,8 +62,10 @@ public class DefaultLexemeCollector implements LexemeCollector
         return lexeme2TokenType;
     }
 
-    private void debugMessage(Lexeme lexeme) {
-        if (!lexeme.getContent().equals(" ")&&!lexeme.getContent().equals("\r\n")) {
+    private void debugMessage(Lexeme lexeme)
+    {
+        if (!lexeme.getContent().equals(" ") && !lexeme.getContent().equals("\r\n"))
+        {
             log.debug("Eat a lexeme:[{}]", lexeme.getContent());
         }
     }
@@ -83,10 +85,18 @@ public class DefaultLexemeCollector implements LexemeCollector
     @Override
     public void postPerLexemeCollected(Lexeme lexeme)
     {
-        if (lexeme.isEndOfStream()) {
+        if (lexeme.isEndOfStream())
+        {
             lexeme.setContent("EOF");
             return;
         }
         this.lexemeStream.add(lexeme);
-    };
+    }
+
+    @Override
+    public boolean isCashed()
+    {
+        return !errors.isEmpty();
+    }
+
 }

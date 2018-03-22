@@ -12,6 +12,10 @@ public class ProgramMonitor
 {
     public static ArrayList<ProgramItemSet> setFamily = new ArrayList<>();
 
+
+    public ProgramMonitor() {
+    }
+
     public static void items(ProgramItem augmentedGrammar)
     {
         ArrayList<ProgramItem> arr = new ArrayList<>();

@@ -1,0 +1,7 @@
+<statement_list> ::= <statement>|<statement_list>;<statement>
+<condition>::=odd<expression>|<expression><relation><expression>
+<expression>::=<term>|<adding_operator><term>|<expression><adding_operator><term>
+<adding_operator>::=+|-
+<term> ::= <factor>|<term><multiplying_operator><factor>
+<multiplying_operator> ::= *|/
+<factor> ::= <ident>|<number>|(<expression>)

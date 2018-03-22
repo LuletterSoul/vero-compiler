@@ -24,4 +24,6 @@ public interface LexemeCollector
     List<Lexeme>  getLexemeStream();
 
     List<CompilationError> getErrors();
+
+    boolean isCashed();
 }

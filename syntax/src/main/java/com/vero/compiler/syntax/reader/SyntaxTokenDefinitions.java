@@ -26,11 +26,13 @@ import lombok.Getter;
 public class SyntaxTokenDefinitions extends DefaultTokenDefinitions
 {
 
-    private Token SYNTAX_NO_TEMINAL;
+    public Token SYNTAX_NO_TERMINAL;
 
-    private Token SYNTAX_TOKEN;
+    public Token SYNTAX_TOKEN;
 
-    private Token BANF_DELIMITER;
+    public Token BANF_DELIMITER;
+
+    public Token UNION_DELIMITER;
 
     private RegularExpression lexerTokenExpressionsUnion;
 
@@ -52,17 +54,24 @@ public class SyntaxTokenDefinitions extends DefaultTokenDefinitions
 
         List<RegularExpression> syntaxRegularExpressionList = new ArrayList<>();
 
-        RegularExpression syntaxNoTerminal = RegularExpression.Symbol('<').Concat(
-            Range('A', 'Z').Union(Symbol('_')).Many1()).Concat(Symbol('>'));
-        this.SYNTAX_NO_TEMINAL = syntaxLexer.defineToken(syntaxNoTerminal);
-        syntaxRegularExpressionList.add(syntaxNoTerminal);
 
-        this.SYNTAX_TOKEN = syntaxLexer.defineToken(this.lexerTokenExpressionsUnion);
-        syntaxRegularExpressionList.add(this.lexerTokenExpressionsUnion);
+
+        RegularExpression syntaxNoTerminal = RegularExpression.Symbol('<').Concat(
+            Range('A', 'Z').Union(Symbol('_').Union(Range('a','z'))).Many1()).Concat(Symbol('>'));
+        this.SYNTAX_NO_TERMINAL = syntaxLexer.defineToken(syntaxNoTerminal);
+        syntaxRegularExpressionList.add(syntaxNoTerminal);
 
         RegularExpression BANF_delimiter = RegularExpression.Literal("::=");
         this.BANF_DELIMITER = syntaxLexer.defineToken(BANF_delimiter);
         syntaxRegularExpressionList.add(BANF_delimiter);
+
+        RegularExpression UNION_delimiter = RegularExpression.Literal("|");
+        this.UNION_DELIMITER = syntaxLexer.defineToken(UNION_delimiter);
+        syntaxRegularExpressionList.add(UNION_delimiter);
+
+        this.SYNTAX_TOKEN = syntaxLexer.defineToken(this.lexerTokenExpressionsUnion);
+        syntaxRegularExpressionList.add(this.lexerTokenExpressionsUnion);
+
 
         this.syntaxExpressions = transferToArray(syntaxRegularExpressionList);
     }

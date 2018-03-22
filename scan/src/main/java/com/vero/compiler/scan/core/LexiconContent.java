@@ -4,6 +4,7 @@ package com.vero.compiler.scan.core;
 import com.vero.compiler.lexer.core.Lexicon;
 import com.vero.compiler.lexer.expression.RegularExpression;
 import com.vero.compiler.lexer.generator.DFAModel;
+import com.vero.compiler.lexer.info.LexerTransitionInfo;
 
 
 /**
@@ -25,6 +26,8 @@ public interface LexiconContent
     void setLexicon(Lexicon lexicon);
 
     Lexicon getLexicon();
+
+    LexerTransitionInfo getInfo();
 
     Lexicon defineLexicon();
 
