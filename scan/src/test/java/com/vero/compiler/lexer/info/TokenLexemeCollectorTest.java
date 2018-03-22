@@ -8,8 +8,8 @@ import java.util.Map;
 import com.vero.compiler.common.error.CompilationError;
 import com.vero.compiler.lexer.core.Lexeme;
 import com.vero.compiler.lexer.token.TokenType;
-import com.vero.compiler.scan.core.LexemeCollector;
-import com.vero.compiler.scan.core.LexiconContent;
+import com.vero.compiler.scan.core.TokenLexemeCollector;
+import com.vero.compiler.scan.core.TokenLexiconContent;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,7 +25,7 @@ import com.vero.compiler.parser.RegularGrammarFileParser;
  */
 
 @Slf4j
-public class LexemeCollectorTest {
+public class TokenLexemeCollectorTest {
 
     @Test
     public void collect() {
@@ -36,14 +36,14 @@ public class LexemeCollectorTest {
         try {
             Map<String, String> typeDetails = TokenType.getTypeDetails();
             RegularExpression[] tokenExpressions = parser.parse(tokenDefinitions);
-            LexiconContent content = new LexiconContent(tokenExpressions);
-            LexemeCollector collector = content.buildCollector();
+            TokenLexiconContent content = new TokenLexiconContent(tokenExpressions);
+            TokenLexemeCollector collector = content.buildCollector();
             Map<String, String> tokens = collector.collect(sourceFile);
             Assert.assertEquals(tokens.get("Float"),typeDetails.get("<keywords>"));
             Assert.assertEquals(tokens.get("myFloat"),typeDetails.get("<var>"));
             Assert.assertEquals(tokens.get("="),typeDetails.get("<operator>"));
             Assert.assertEquals(tokens.get(" "),typeDetails.get("<whitespace>"));
-            List<Lexeme> tokenStream = collector.getTokenStream();
+            List<Lexeme> tokenStream = collector.getLexemeStream();
             List<CompilationError> errors = collector.getErrors();
             tokenStream.forEach(detail->{
                 if (!detail.getContent().equals(" ")&&!detail.getContent().equals("\r\n")) {

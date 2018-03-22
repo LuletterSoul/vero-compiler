@@ -5,17 +5,17 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.vero.compiler.exception.TokenDefinitionsNotFoundException;
-import com.vero.compiler.lexer.info.LexerTransitionInfo;
 import com.vero.compiler.lexer.compress.CompactCharSetManager;
 import com.vero.compiler.lexer.compress.CompressedTransitionTable;
+import com.vero.compiler.lexer.expression.AlternationExpression;
 import com.vero.compiler.lexer.expression.RegularExpression;
 import com.vero.compiler.lexer.expression.StringLiteralExpression;
+import com.vero.compiler.lexer.expression.SymbolExpression;
 import com.vero.compiler.lexer.generator.DFAModel;
+import com.vero.compiler.lexer.info.LexerTransitionInfo;
 import com.vero.compiler.lexer.token.Token;
 import com.vero.compiler.lexer.token.TokenInfo;
 
-import com.vero.compiler.lexer.expression.AlternationExpression;
-import com.vero.compiler.lexer.expression.SymbolExpression;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,7 +40,6 @@ public class Lexicon
     private List<TokenInfo> tokenList;
 
     private CompactCharSetManager compactCharSetManager;
-
 
     public Lexicon()
     {
@@ -75,13 +74,11 @@ public class Lexicon
     }
 
     /**
-     * {@link SymbolExpression},
-     * {@link StringLiteralExpression}
+     * {@link SymbolExpression}, {@link StringLiteralExpression}
      * {@link StringLiteralExpression#getCompressibleCharSets()}返回空, 因为这两种类型的正则表达式没用等价转换的字符集
      * {@link StringLiteralExpression#getUnCompressibleCharSet()}返回的是不可被压缩的字符集
-     * <code>""IamString"""</code>表示字面值常量<code>"s"</code>表示的标识符
-     * {@link AlternationExpression} {@link }
-     * StringLiteralExpression, AlternationCharSet的GetCompactableCharsets
+     * <code>""IamString"""</code>表示字面值常量<code>"s"</code>表示的标识符 {@link AlternationExpression}
+     * {@link } StringLiteralExpression, AlternationCharSet的GetCompactableCharsets
      * 和GetUncompactableCharset方法返回值的， 其中前两个的GetCompactableCharset返回空，
      * AlternationCharSet类的GetCompactableCharSet返回包含所有可选字符的一个hashset。
      * GetCompactable方法主要是用来对Alternation这种类型的charset进行压缩用的，
@@ -240,10 +237,21 @@ public class Lexicon
     public LexerTransitionInfo createScannerInfo(DFAModel dfa)
     {
         CompressedTransitionTable ctt = CompressedTransitionTable.compress(dfa);
-        return new LexerTransitionInfo(ctt.getRealCompressedTransitionTable(), ctt.getCharClassTable(),
-            dfa.getAcceptTables(), tokenList.size());
+        return new LexerTransitionInfo(ctt.getRealCompressedTransitionTable(),
+            ctt.getCharClassTable(), dfa.getAcceptTables(), tokenList.size());
     }
 
+    /**
+     * 返回所有词典定义Token的正则表达式
+     * 
+     * @return
+     */
+    public List<RegularExpression> extractExpressions()
+    {
+        List<RegularExpression> expressions = new ArrayList<>();
+        this.tokenList.forEach(t -> expressions.add(t.getDefinition()));
+        return expressions;
+    }
 
     @Override
     public String toString()
