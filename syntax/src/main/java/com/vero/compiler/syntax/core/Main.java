@@ -16,15 +16,17 @@ import com.google.common.io.Files;
 public class Main
 {
 
+
     public static void main(String[] args)
     {
+         GrammarProductionManager productionManager;
         try
         {
             URL f1 = Thread.currentThread().getContextClassLoader().getResource("prod.txt");
 
             Files.readLines(new File(Objects.requireNonNull(f1).getFile()),
                 Charsets.UTF_8).stream().filter(line -> line.length() > 1).forEach(
-                    GrammarProductionManager::addProduction);
+                    productionManager::addProduction);
         }
         catch (IOException e)
         {
@@ -59,7 +61,7 @@ public class Main
     {
         println("GOTO:");
         int i = 0;
-        for (HashMap<String, Integer> gt : ParserTable.GOTO_TABLE)
+        for (HashMap<String, Integer> gt : SyntaxAnalysisTableGenerator.GOTO_TABLE)
         {
             print("S" + i);
             for (String key : gt.keySet())
@@ -78,18 +80,18 @@ public class Main
         ArrayList<String> lookAhead = new ArrayList<>();
         lookAhead.add("$");
         ProgramItem item = new ProgramItem("E'", right, -1, lookAhead, -1);
-        Utils.ACC_LEFT = item.left;
-        Utils.ACC_RIGHT = item.right.get(0);
-        ParserTable.initGrammar(item);
-        ParserTable.createAT();
-        ParserTable.createGT();
+        SymbolMaintainer.ACC_LEFT = item.left;
+        SymbolMaintainer.ACC_RIGHT = item.right.get(0);
+        SyntaxAnalysisTableGenerator.initGrammar(item);
+        SyntaxAnalysisTableGenerator.createAT();
+        SyntaxAnalysisTableGenerator.createGT();
     }
 
     public static void printActionTable()
     {
         println("ACTION:");
         int i = 0;
-        for (HashMap<String, ArrayList<ActionItem>> actions : ParserTable.ACTION_TABLE)
+        for (HashMap<String, ArrayList<ActionItem>> actions : SyntaxAnalysisTableGenerator.ACTION_TABLE)
         {
             print("S" + i);
             for (String key : actions.keySet())
@@ -111,15 +113,15 @@ public class Main
     public static void printProductionInfo()
     {
         print("非终结符:\n");
-        GrammarProductionManager.noTerminalSet.forEach(System.out::println);
+        productionManager.noTerminalSet.forEach(System.out::println);
         print("\n终结符:\n");
-        GrammarProductionManager.TERMINAL_SET.forEach(System.out::println);
+        productionManager.terminalSet.forEach(System.out::println);
         print("\nMap:\n");
-        Set<String> keys = GrammarProductionManager.PRODUCTION_MAP.keySet();
+        Set<String> keys = productionManager.productCutMap.keySet();
         for (String key : keys)
         {
             print(key + ": ");
-            println(GrammarProductionManager.PRODUCTION_MAP.get(key));
+            println(productionManager.productCutMap.get(key));
         }
         println("");
         println("");
@@ -127,15 +129,15 @@ public class Main
 
     public static void initProductionSet()
     {
-        GrammarProductionManager.noTerminal();
-        GrammarProductionManager.terminal();
-        GrammarProductionManager.directory();
+        productionManager.computeNoTerminals();
+        productionManager.computeTerminals();
+        productionManager.directory();
     }
 
     public static void printItems()
     {
         int i = 0;
-        for (ProgramItemSet itemSet : ProgramMonitor.setFamily)
+        for (ProgramItemSet itemSet : ProgramMonitor.family)
         {
             print("I" + i + ":\n");
             printItemSet(itemSet);

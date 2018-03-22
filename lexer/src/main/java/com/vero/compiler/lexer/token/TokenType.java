@@ -33,8 +33,7 @@ public enum TokenType {
     WHITESPACE(14,"<whitespace>","空格"),
     LINE_BREAKER(15,"<line_breaker>","回车换行"),
     EOF(16, "<eof>", "文件结尾"),
-    ;
-
+    EMPTY(17,"<empty>","空符");
     private Integer priority;
 
     private String type;
