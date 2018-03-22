@@ -3,8 +3,10 @@ package com.vero.compiler.parser;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,8 +28,8 @@ public class RegularGrammarFileParserTest
     @Test
     public void parse()
     {
-        File testGrammarFile = new File(
-            "F:\\GitHup\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar1.txt");
+        URL f1=Thread.currentThread().getContextClassLoader().getResource("regular_grammar1.txt");
+        File testGrammarFile = new File(Objects.requireNonNull(f1).getFile());
         RegularGrammarFileParser parser = new RegularGrammarFileParser();
         try
         {

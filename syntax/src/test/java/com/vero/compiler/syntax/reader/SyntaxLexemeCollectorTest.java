@@ -3,7 +3,9 @@ package com.vero.compiler.syntax.reader;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -29,10 +31,10 @@ public class SyntaxLexemeCollectorTest
     @Test
     public void postPerLexemeCollected()
     {
-        File tokenDefinitions = new File(
-            "C:\\Users\\31370\\IdeaProjects\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar3.txt");
-        File sourceFile = new File(
-            "C:\\Users\\31370\\IdeaProjects\\vero-compiler\\syntax\\src\\test\\resources\\syntax_grammar_test1.txt");
+        URL f1=Thread.currentThread().getContextClassLoader().getResource("regular_grammar3.txt");
+        URL f2=Thread.currentThread().getContextClassLoader().getResource("syntax_grammar_test1.txt");
+        File tokenDefinitions = new File(Objects.requireNonNull(f1).getFile());
+        File sourceFile = new File(Objects.requireNonNull(f2).getFile());
 
         RegularGrammarFileParser parser = new RegularGrammarFileParser();
         try

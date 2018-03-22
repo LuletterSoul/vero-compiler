@@ -2,8 +2,10 @@ package com.vero.compiler.lexer.info;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.vero.compiler.common.error.CompilationError;
 import com.vero.compiler.lexer.core.Lexeme;
@@ -30,8 +32,10 @@ public class TokenLexemeCollectorTest {
 
     @Test
     public void collect() {
-        File tokenDefinitions = new File("C:\\Users\\31370\\IdeaProjects\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar3.txt");
-        File sourceFile = new File("C:\\Users\\31370\\IdeaProjects\\vero-compiler\\scan\\src\\test\\resource\\scannedTest3.txt");
+        URL f1=Thread.currentThread().getContextClassLoader().getResource("regular_grammar3.txt");
+        URL f2=Thread.currentThread().getContextClassLoader().getResource("scannedTest4.txt");
+        File tokenDefinitions = new File(Objects.requireNonNull(f1).getFile());
+        File sourceFile = new File(Objects.requireNonNull(f2).getFile());
 
         RegularGrammarFileParser parser = new RegularGrammarFileParser();
         try {

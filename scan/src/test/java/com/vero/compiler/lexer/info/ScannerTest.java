@@ -5,6 +5,8 @@ import static com.vero.compiler.lexer.expression.RegularExpression.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.util.Objects;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,6 +41,10 @@ public class ScannerTest
     @Test
     public void read()
     {
+        URL f1=Thread.currentThread().getContextClassLoader().getResource("scannedTest1.txt");
+        File scannedFile = new File(
+                Objects.requireNonNull(f1).getFile());
+
         Lexicon lexicon = new Lexicon();
         Lexer global = lexicon.getDefaultLexer();
         Lexer keywords = global.createSubLexer();
@@ -55,8 +61,7 @@ public class ScannerTest
 
         Token XMLNS = xml.defineToken(Literal("xmlns"));
 
-        File scannedFile = new File(
-            "F:\\GitHup\\vero-compiler\\scan\\src\\test\\resource\\scannedTest1.txt");
+
 
         RegularExpressionConverter converter = new NFAConverter(
             lexicon.getCompactCharSetManager());
@@ -247,8 +252,9 @@ public class ScannerTest
 
     private RegularExpression[] transferDefinition2Token()
     {
-        File testGrammarFile = new File(
-            "F:\\GitHup\\vero-compiler\\parser\\src\\test\\resources\\regular_grammar3.txt");
+
+        URL f1=Thread.currentThread().getContextClassLoader().getResource("regular_grammar3.txt");
+        File testGrammarFile = new File(Objects.requireNonNull(f1).getFile());
         RegularGrammarFileParser parser = new RegularGrammarFileParser();
         try
         {
@@ -300,8 +306,9 @@ public class ScannerTest
 
         Token DELIMITER = global.defineToken(tokenExpressions[TokenType.DELIMITER.getPriority()]);
 
-        File scannedFile = new File(
-            "F:\\GitHup\\vero-compiler\\scan\\src\\test\\resource\\scannedTest4.txt");
+        URL f1=Thread.currentThread().getContextClassLoader().getResource("scannedTest4.txt");
+        File scannedFile = new File(Objects.requireNonNull(f1).getFile());
+
 
         RegularExpressionConverter converter = new NFAConverter(
             lexicon.getCompactCharSetManager());
