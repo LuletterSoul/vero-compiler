@@ -4,6 +4,7 @@ package com.vero.compiler.scan.core;
 import com.vero.compiler.lexer.compress.CompressedTransitionTable;
 import com.vero.compiler.lexer.converter.NFAConverter;
 import com.vero.compiler.lexer.converter.RegularExpressionConverter;
+import com.vero.compiler.lexer.core.Lexer;
 import com.vero.compiler.lexer.core.Lexicon;
 import com.vero.compiler.lexer.expression.RegularExpression;
 import com.vero.compiler.lexer.generator.DFAModel;
@@ -11,7 +12,11 @@ import com.vero.compiler.lexer.info.LexerTransitionInfo;
 import com.vero.compiler.lexer.source.FileSourceReader;
 import com.vero.compiler.lexer.source.SourceReader;
 
+import com.vero.compiler.lexer.token.Token;
+import jdk.nashorn.internal.ir.Symbol;
 import lombok.Getter;
+
+import static com.vero.compiler.lexer.expression.RegularExpression.*;
 
 
 /**

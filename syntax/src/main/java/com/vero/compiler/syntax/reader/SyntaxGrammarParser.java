@@ -146,6 +146,9 @@ public class SyntaxGrammarParser
             left = l.getContent();
             // 跳过::=
             iterator.next();
+            if(left.equals("<factor>")){
+                log.debug("~~~~~~~~~~");
+            }
             l = iterator.next();
             boolean isUnion;
             List<String> rightPart = new ArrayList<>();

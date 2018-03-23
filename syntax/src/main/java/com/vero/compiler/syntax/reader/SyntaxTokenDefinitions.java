@@ -57,7 +57,7 @@ public class SyntaxTokenDefinitions extends DefaultTokenDefinitions
 
 
         RegularExpression syntaxNoTerminal = RegularExpression.Symbol('<').Concat(
-            Range('A', 'Z').Union(Symbol('_').Union(Range('a','z'))).Many1()).Concat(Symbol('>'));
+            Range('A', 'Z').Union(Symbol('_').Union(Range('a','z'))).Many1()).Union(Symbol('\'')).Concat(Symbol('>'));
         this.SYNTAX_NO_TERMINAL = syntaxLexer.defineToken(syntaxNoTerminal);
         syntaxRegularExpressionList.add(syntaxNoTerminal);
 

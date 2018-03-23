@@ -50,7 +50,7 @@ public class ProgramMonitorTest
         URL f1 = Thread.currentThread().getContextClassLoader().getResource(
             "regular_grammar3.txt");
         URL f2 = Thread.currentThread().getContextClassLoader().getResource(
-            "syntax_grammar_test6.txt");
+                "c_grammar_test1.txt");
         this.lexerDefinition = new File(Objects.requireNonNull(f1).getFile());
         this.sourceFile = new File(Objects.requireNonNull(f2).getFile());
         RegularGrammarFileParser parser = new RegularGrammarFileParser();
@@ -87,14 +87,14 @@ public class ProgramMonitorTest
     public void monitor()
     {
         URL f1 = Thread.currentThread().getContextClassLoader().getResource(
-            "lexer_syntax_test1.txt");
+            "lexer_syntax_test2.txt");
         ProgramMonitor monitor = new ProgramMonitor(
             new GrammarProductionManager(this.rowProductions, this.productionCutMap));
         LexemeCollector lexemeCollector = this.lexerLexiconContent.buildCollector();
         lexemeCollector.collect(new File(Objects.requireNonNull(f1).getFile()));
         //过滤空格
-        List<Lexeme> lexemes = lexemeCollector.getLexemeStream().stream().filter(
-            l -> !l.getContent().equals(" ")).collect(Collectors.toList());
+        List<Lexeme> lexemes = lexemeCollector.getLexemeStream();
         monitor.monitor(lexemes);
     }
+
 }

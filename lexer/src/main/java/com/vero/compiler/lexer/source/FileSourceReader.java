@@ -31,8 +31,8 @@ public class FileSourceReader extends SourceReader
 
     private char[] charBuffer;
 
-    private Integer charBufferSize = 1024;
 
+    private Integer charBufferSize =2048;
     private Integer currentBufferPointer = charBufferSize-1;
 
     public FileSourceReader(FileReader fileReader, Integer charBufferSize)
@@ -99,6 +99,7 @@ public class FileSourceReader extends SourceReader
         if (succces)
         {
             if (current == Character.MAX_VALUE) {
+//                System.arraycopy(charBuffer, 1, charBuffer, 0, this.charBuffer.length - 1);
                 return succces;
             }
             System.arraycopy(charBuffer, 0, charBuffer, 1, this.charBuffer.length - 1);
@@ -159,7 +160,7 @@ public class FileSourceReader extends SourceReader
         try
         {
             this.initCharBuffer();
-            if (getFileReader().read(this.charBuffer, 0, charBuffer.length - 1) > 0)
+            if (getFileReader().read(this.charBuffer,0,charBuffer.length-1) > 0)
             {
                 this.currentBufferPointer = -1;
                 return true;

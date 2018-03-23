@@ -4,6 +4,8 @@ package com.vero.compiler.syntax.core;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import com.vero.compiler.lexer.core.Lexeme;
 import com.vero.compiler.syntax.production.GrammarProductionManager;
@@ -56,12 +58,17 @@ public class ProgramMonitor
      */
     public void monitor(List<Lexeme> lexemes)
     {
+        List<Lexeme> streams = lexemes.stream().filter(filter()).collect(Collectors.toList());
         SyntaxDriverInfo driverInfo = generator.generate();
         SyntaxParser parser = new SyntaxParser(driverInfo, getMaintainer());
-        parser.parse(lexemes);
+        parser.parse(streams);
     }
 
-
+    private Predicate<Lexeme> filter()
+    {
+        return l -> !l.getContent().contains(" ") && !l.getContent().contains("\r\n")
+                    && !l.getContent().contains("\t");
+    }
 
     /**
      * 拓广文法
@@ -147,9 +154,8 @@ public class ProgramMonitor
     }
 
     /**
-     * 严格判等
-     * 要求每个项目集的所有元素
-     * 相等时才相等
+     * 严格判等 要求每个项目集的所有元素 相等时才相等 ==
+     * 
      * @param init
      * @return
      */

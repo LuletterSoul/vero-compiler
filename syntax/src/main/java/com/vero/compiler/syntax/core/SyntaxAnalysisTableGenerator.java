@@ -76,11 +76,6 @@ public class SyntaxAnalysisTableGenerator
             for (ProgramItem item : itemSet.reduceItems())
             {
                 ActionItem actionItem;
-                if (log.isDebugEnabled())
-                {
-                    log.debug("Reduce item right: [{}]-----size:[{}]----lookAhead:[{}]----",
-                        item.getRight().get(0), item.getRight().size(), item.lookAhead);
-                }
                 if (item.left.equals(this.maintainer.getAcceptLeft()) && item.right.size() == 1
                     && item.right.get(0).equals(this.maintainer.getAcceptRight())
                     && item.lookAhead.contains("$"))

@@ -1,1 +1,3 @@
-id * id + id
+int main(){
+    int myInt = 1;
+}

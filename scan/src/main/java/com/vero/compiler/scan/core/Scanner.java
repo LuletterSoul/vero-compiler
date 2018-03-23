@@ -139,6 +139,10 @@ public class Scanner
             }
             if (isLastTokenSkippable())
             {
+                if (log.isDebugEnabled())
+                {
+                    log.debug("Skip the token [{}].", lexemeValueBuilder.toString());
+                }
                 addHistory(new Lexeme(this.lexerTransitionInfo, this.lastState,
                     new SourceSpan(this.lastTokenStart, sourceReader.getPreLocation()),
                     lexemeValueBuilder.toString()), false);
@@ -180,7 +184,7 @@ public class Scanner
         return getTokenAttributes()[acceptTokenIndex].equals(c_skip);
     }
 
-    public void SetTriviaTokens(int[] triviaTokenIndices)
+    public void setTriviaTokens(Integer[] triviaTokenIndices)
     {
         for (int i = 0; i < tokenAttributes.length; i++ )
         {
