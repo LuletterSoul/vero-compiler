@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.vero.compiler.lexer.core.Lexeme;
 import com.vero.compiler.syntax.production.GrammarProductionManager;
+
 import lombok.Getter;
 
 
@@ -21,11 +23,59 @@ public class ProgramMonitor
 
     private SyntaxAnalysisTableGenerator generator;
 
+    private List<ProgramItemSet> family = new ArrayList<>();
+
     public ProgramMonitor(GrammarProductionManager productionManager)
+    {
+        init(productionManager);
+    }
+
+    private void init(GrammarProductionManager productionManager)
     {
         this.productionManager = productionManager;
         this.maintainer = new SymbolMaintainer(productionManager);
-        this.generator = new SyntaxAnalysisTableGenerator(this.family, this.maintainer);
+        this.generator = new SyntaxAnalysisTableGenerator(this, this.maintainer);
+        this.extendGrammar();
+    }
+
+    /**
+     * 重启总控程序
+     * 
+     * @param productionManager
+     *            传入新的文法产生式
+     */
+    public void reloadMonitor(GrammarProductionManager productionManager)
+    {
+        init(productionManager);
+    }
+
+    /**
+     * 输入Token流
+     * 
+     * @param lexemes
+     */
+    public void monitor(List<Lexeme> lexemes)
+    {
+        SyntaxDriverInfo driverInfo = generator.generate();
+        SyntaxParser parser = new SyntaxParser(driverInfo, getMaintainer());
+        parser.parse(lexemes);
+    }
+
+
+
+    /**
+     * 拓广文法
+     */
+    public void extendGrammar()
+    {
+        List<String> right = new ArrayList<>();
+        right.add("E");
+        List<String> lookAhead = new ArrayList<>();
+        lookAhead.add("$");
+        ProgramItem extendItem = new ProgramItem("E'", right, -1, lookAhead, -1, this);
+        this.maintainer.setAcceptLeft(extendItem.getLeft());
+        this.maintainer.setAcceptRight(extendItem.getRight().get(0));
+        this.maintainer.setI0(extendItem);
     }
 
     public void items(ProgramItem augmentedGrammar)
@@ -34,14 +84,13 @@ public class ProgramMonitor
         arr.add(augmentedGrammar);
         ProgramItemSet I0 = closure(arr);
         family.add(I0);
-
         for (int i = 0; i < family.size(); ++i)
         {
             ProgramItemSet I = family.get(i);
             HashMap<String, List<Integer>> ids = I.getProIds();
             for (String key : ids.keySet())
             {
-                Goto(I, ids.get(key), key);
+                gotoShift(I, ids.get(key), key);
             }
         }
     }
@@ -49,7 +98,7 @@ public class ProgramMonitor
     private ProgramItemSet closure(List<ProgramItem> startItem)
     {
         // 状态初始项
-        ProgramItemSet I = new ProgramItemSet(startItem);
+        ProgramItemSet I = new ProgramItemSet(startItem, this, getMaintainer());
 
         for (int i = 0; i < I.container.size(); ++i)
         {
@@ -69,7 +118,8 @@ public class ProgramMonitor
                 int index = 0;
                 for (List<String> right : rights)
                 {
-                    ProgramItem extendItem = new ProgramItem(left, right, -1, lookAhead, index);
+                    ProgramItem extendItem = new ProgramItem(left, right, -1, lookAhead, index,
+                        this);
                     if (!inI(I, extendItem))
                     {
                         I.addItem(extendItem);
@@ -81,10 +131,10 @@ public class ProgramMonitor
         return I;
     }
 
-    private void Goto(ProgramItemSet I, List<Integer> ids, String key)
+    private void gotoShift(ProgramItemSet I, List<Integer> ids, String key)
     {
         List<ProgramItem> initItems = I.statusInitialize(ids);
-        int flag = IExist(initItems);
+        int flag = isItemExist(initItems);
         if (flag != -1)
         {
             I.setStatus(key, flag);
@@ -96,7 +146,7 @@ public class ProgramMonitor
         }
     }
 
-    private int IExist(List<ProgramItem> init)
+    private int isItemExist(List<ProgramItem> init)
     {
         for (int index = 0; index < family.size(); index++ )
         {
@@ -106,7 +156,7 @@ public class ProgramMonitor
             {
                 for (int j = 0; j < init.size(); j++ )
                 {
-                    if (myEqual(item, init.get(j)))
+                    if (isProgramItemEqual(item, init.get(j)))
                     {
                         flag[j] = 1;
                     }
@@ -123,7 +173,7 @@ public class ProgramMonitor
         return -1;
     }
 
-    private boolean myEqual(ProgramItem i0, ProgramItem i1)
+    private boolean isProgramItemEqual(ProgramItem i0, ProgramItem i1)
     {
         if (i0.left.equals(i1.left) && i0.dot == i1.dot && i0.right.equals(i1.right)
             && i0.lookAhead.equals(i1.lookAhead))

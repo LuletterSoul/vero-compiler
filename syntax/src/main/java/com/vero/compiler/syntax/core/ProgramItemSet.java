@@ -20,10 +20,14 @@ public class ProgramItemSet
 
     private SymbolMaintainer maintainer;
 
-    public ProgramItemSet(List<ProgramItem> items)
+    private ProgramMonitor monitor;
+
+    public ProgramItemSet(List<ProgramItem> items,ProgramMonitor monitor,SymbolMaintainer maintainer)
     {
         this.container = new ArrayList<>();
         this.status = new HashMap<>();
+        this.monitor = monitor;
+        this.maintainer = maintainer;
         for (ProgramItem item : items)
         {
             this.addItem(item);
@@ -104,7 +108,7 @@ public class ProgramItemSet
         {
             ProgramItem item = container.get(i);
             init.add(new ProgramItem(item.left, item.right, item.dot + 1, item.getLookAhead(),
-                item.index));
+                item.index,getMonitor()));
         }
         return init;
     }
@@ -129,7 +133,7 @@ public class ProgramItemSet
         for (ProgramItem item : container)
         {
             if (item.dotAtEnd()) items.add(
-                new ProgramItem(item.left, item.right, item.dot, item.getLookAhead(), item.index));
+                new ProgramItem(item.left, item.right, item.dot, item.getLookAhead(), item.index,getMonitor()));
         }
         return items;
     }

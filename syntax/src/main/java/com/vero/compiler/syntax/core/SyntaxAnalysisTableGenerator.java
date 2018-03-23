@@ -5,47 +5,67 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
+import static com.vero.compiler.syntax.core.PrintUtils.*;
+
 
 /**
  * Created by XiangDe Liu on 2018/3/11.
  */
+@Getter
+@Slf4j
 public class SyntaxAnalysisTableGenerator
 {
-    public static ArrayList<HashMap<String, ArrayList<ActionItem>>> ACTION_TABLE = new ArrayList<>();
+    public List<HashMap<String, List<ActionItem>>> ACTION_TABLE = new ArrayList<>();
 
-    public static ArrayList<HashMap<String, Integer>> GOTO_TABLE = new ArrayList<>();
-
-    public List<ProgramItemSet> family;
+    public List<HashMap<String, Integer>> GOTO_TABLE = new ArrayList<>();
 
     public SymbolMaintainer maintainer;
 
-    public SyntaxAnalysisTableGenerator(SymbolMaintainer maintainer)
+    private ProgramMonitor monitor;
+
+    public SyntaxAnalysisTableGenerator(ProgramMonitor monitor, SymbolMaintainer maintainer)
     {
-        this.family = family;
         this.maintainer = maintainer;
+        this.monitor = monitor;
     }
 
-    public static void initGrammar(ProgramItem augmentedGrammar)
+    private List<ProgramItemSet> getFamily()
     {
-        ProgramMonitor.items(augmentedGrammar);
+        return this.monitor.getFamily();
     }
 
-    public SyntaxAnalysisTableGenerator(List<ProgramItemSet> family)
+    public void initGrammar(ProgramItem augmentedGrammar)
     {
-        this.family = family;
+        this.monitor.items(augmentedGrammar);
     }
 
-    public static void createAT()
+    public SyntaxDriverInfo generate()
     {
-        for (int i = 0; i < ProgramMonitor.family.size(); i++ )
+        this.initGrammar(this.maintainer.getI0());
+        this.createActionTable();
+        this.createGotoTable();
+        if (log.isDebugEnabled()) {
+            printItems(getFamily());
+            printActionTable(getACTION_TABLE());
+            printGotoTable(getGOTO_TABLE());
+        }
+        return new SyntaxDriverInfo(getACTION_TABLE(), getGOTO_TABLE());
+    }
+
+    public void createActionTable()
+    {
+        for (int i = 0; i < getFamily().size(); i++ )
         {
-            HashMap<String, ArrayList<ActionItem>> table = new HashMap<>();
-            ProgramItemSet itemSet = ProgramMonitor.family.get(i);
+            HashMap<String, List<ActionItem>> table = new HashMap<>();
+            ProgramItemSet itemSet = getFamily().get(i);
 
             // 移入
             for (String symbol : itemSet.shiftSymbol())
             {
-                ArrayList<ActionItem> actList = new ArrayList<>();
+                List<ActionItem> actList = new ArrayList<>();
                 ActionItem actionItem = new ActionItem(itemSet.getStatus(symbol), "s");
                 actList.add(actionItem);
                 table.put(symbol, actList);
@@ -55,9 +75,9 @@ public class SyntaxAnalysisTableGenerator
             for (ProgramItem item : itemSet.reduceItems())
             {
                 ActionItem actionItem;
-                if (item.left.equals(SymbolMaintainer.ACC_LEFT) && item.right.size() == 1
-                    && item.right.get(0).equals(SymbolMaintainer.ACC_RIGHT)
-                    && item.lookAhead.contains("$"))
+                if (item.left.equals(ExtentionSymbol.ACCEPT_LEFT) && item.right.size() == 1
+                    && item.right.get(0).equals(ExtentionSymbol.ACCEPT_RIGHT)
+                    && item.lookAhead.contains(ExtentionSymbol.ACCEPT_RIGHT))
                 {
                     actionItem = new ActionItem(null, "acc");
                 }
@@ -70,13 +90,13 @@ public class SyntaxAnalysisTableGenerator
                 {
                     if (table.keySet().contains(symbol))
                     {
-                        ArrayList<ActionItem> actList = table.get(symbol);
+                        List<ActionItem> actList = table.get(symbol);
                         actList.add(actionItem);
                         table.put(symbol, actList);
                     }
                     else
                     {
-                        ArrayList<ActionItem> actList = new ArrayList<>();
+                        List<ActionItem> actList = new ArrayList<>();
                         actList.add(actionItem);
                         table.put(symbol, actList);
                     }
@@ -86,17 +106,16 @@ public class SyntaxAnalysisTableGenerator
         }
     }
 
-    public static void createGT()
+    public void createGotoTable()
     {
-        for (int i = 0; i < ProgramMonitor.family.size(); ++i)
+        for (int i = 0; i < getFamily().size(); ++i)
         {
             HashMap<String, Integer> gt = new HashMap<>();
-            ProgramItemSet itemSet = ProgramMonitor.family.get(i);
+            ProgramItemSet itemSet = getFamily().get(i);
             for (String symbol : itemSet.gotoSymbol())
             {
                 gt.put(symbol, itemSet.getStatus(symbol));
             }
-
             GOTO_TABLE.add(gt);
         }
     }

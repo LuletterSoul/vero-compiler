@@ -31,7 +31,7 @@ public class CompilationError
     @Override
     public String toString()
     {
-        return String.format("Error:%s : %s  Line: %s Column: %s", info.getId(), message,
+        return String.format("Error:%s : [%s]  Line: %s Column: %s", info.getId(), message,
             getErrorPosition().getStartLocation().getLine(),
             getErrorPosition().getStartLocation().getColumn());
     }

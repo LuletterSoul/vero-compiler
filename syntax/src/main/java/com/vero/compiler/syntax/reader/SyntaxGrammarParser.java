@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import com.vero.compiler.common.error.CompilationError;
 import com.vero.compiler.exception.InValidSyntaxGrammarException;
+import com.vero.compiler.exception.ParseException;
 import com.vero.compiler.exception.TokenDefinitionsNotFoundException;
 import com.vero.compiler.lexer.core.Lexeme;
 import com.vero.compiler.scan.core.*;
@@ -39,21 +40,31 @@ public class SyntaxGrammarParser
 
     private SyntaxTokenDefinitions tokenDefinitions;
 
-
     public SyntaxGrammarParser(LexiconContent syntaxLexiconContent, File grammarSource)
     {
-        this.syntaxLexiconContent = syntaxLexiconContent;
+        initParser(syntaxLexiconContent);
         this.grammarSource = grammarSource;
+        this.parse(grammarSource);
+    }
+
+    private void initParser(LexiconContent syntaxLexiconContent)
+    {
+        this.syntaxLexiconContent = syntaxLexiconContent;
         this.engine = syntaxLexiconContent.getScanner().getEngine();
         TokenDefinitions tokenDefinitions = syntaxLexiconContent.getDefinitions();
         if (tokenDefinitions instanceof SyntaxTokenDefinitions)
         {
             this.tokenDefinitions = (SyntaxTokenDefinitions)tokenDefinitions;
         }
-        this.parse(grammarSource);
     }
 
-    private void parse(File grammarSource)
+    public SyntaxGrammarParser(LexiconContent syntaxLexiconContent)
+    {
+        this.syntaxLexiconContent = syntaxLexiconContent;
+        initParser(syntaxLexiconContent);
+    }
+
+    public List<Lexeme> parse(File grammarSource)
     {
         Scanner scanner = this.syntaxLexiconContent.getScanner();
         scanner.changeSourceFile(grammarSource);
@@ -62,10 +73,15 @@ public class SyntaxGrammarParser
         List<CompilationError> errors = collector.getErrors();
         if (!errors.isEmpty())
         {
+            if (log.isErrorEnabled())
+            {
+                errors.forEach(e -> log.error(e.toString()));
+            }
             throw new InValidSyntaxGrammarException(
                 "Invalid syntax grammar definition.Each computeTerminals symbol of the grammar should match the lexer token pattern.");
         }
         this.lexemeStream = collector.getLexemeStream();
+        return this.lexemeStream;
     }
 
     public List<String> parseProductionRows()
@@ -73,6 +89,7 @@ public class SyntaxGrammarParser
         List<String> productionRows = new ArrayList<>();
         List<Lexeme> lexemeStream = getLexemeStream();
         StringBuilder stringBuilder = new StringBuilder();
+        validateLexemeStream(lexemeStream);
         for (Lexeme l : lexemeStream)
         {
             if (!l.getContent().equals("\r\n"))
@@ -88,6 +105,13 @@ public class SyntaxGrammarParser
         return productionRows;
     }
 
+    private void validateLexemeStream(List<Lexeme> lexemeStream)
+    {
+        if (Objects.isNull(lexemeStream) || lexemeStream.isEmpty())
+        {
+            throw new ParseException("Lexeme stream is empty.Please call parse procedure firstly");
+        }
+    }
 
     public Map<String, List<List<String>>> parseProduction()
     {
@@ -100,6 +124,7 @@ public class SyntaxGrammarParser
         // 过滤掉所有空格
         List<Lexeme> lexemeStream = getLexemeStream().stream().filter(
             l -> !l.getContent().equals(" ")).collect(Collectors.toList());
+        validateLexemeStream(lexemeStream);
         Map<String, List<List<String>>> productionCutMap = new HashMap<>();
         // Integer BANF_DELIMITER_INDEX = definitions.BANF_DELIMITER.getIndex();
         // Integer SYNTAX_NO_TERMINAL_INDEX = definitions.SYNTAX_NO_TERMINAL.getIndex();
@@ -113,6 +138,10 @@ public class SyntaxGrammarParser
         {
             Lexeme l = iterator.next();
             Integer tokenIndex = l.getTokenIndex();
+            if (l.getContent().equals("\r\n")) {
+                iterator.next();
+                continue;
+            }
             // 读取左部
             left = l.getContent();
             // 跳过::=
@@ -142,10 +171,19 @@ public class SyntaxGrammarParser
                 l = iterator.next();
                 tokenIndex = l.getTokenIndex();
             }
+            if (!iterator.hasNext())
+            {
+                rightPart.add(l.getContent());
+            }
             if (isNewLine || !iterator.hasNext())
             {
                 rightParts.add(rightPart);
                 productionCutMap.put(left, rightParts);
+                if (log.isDebugEnabled())
+                {
+                    log.debug("Parsed the production: ＊ left:[{}] ::= ＊ right :{}", left,
+                        rightPart);
+                }
             }
         }
         return productionCutMap;

@@ -33,7 +33,7 @@ public class FileSourceReader extends SourceReader
 
     private Integer charBufferSize = 1024;
 
-    private Integer currentBufferPointer = 1024;
+    private Integer currentBufferPointer = charBufferSize-1;
 
     public FileSourceReader(FileReader fileReader, Integer charBufferSize)
     {
@@ -58,7 +58,8 @@ public class FileSourceReader extends SourceReader
         }
     }
 
-    public FileSourceReader() {
+    public FileSourceReader()
+    {
         this.charBuffer = new char[charBufferSize];
         this.initCharBuffer();
     }
@@ -67,15 +68,16 @@ public class FileSourceReader extends SourceReader
     {
         this.charBuffer = new char[this.charBufferSize];
         this.initCharBuffer();
-        this.currentBufferPointer = charBufferSize;
+        this.currentBufferPointer = charBufferSize -1;
     }
 
     @Override
     public Integer peekChar()
     {
-        if (isEndOfBuffer())
+        if (isPeekEndOfBuffer())
         {
-            if (readCharsToBuffer())
+            log.debug("Buffer over flow.");
+            if (handleOverflow())
             {
                 return (int)getCharBuffer()[this.currentBufferPointer + 1];
             }
@@ -88,6 +90,22 @@ public class FileSourceReader extends SourceReader
         {
             return (int)getCharBuffer()[this.currentBufferPointer + 1];
         }
+    }
+
+    private boolean handleOverflow()
+    {
+        char current = getCharBuffer()[this.currentBufferPointer];
+        boolean succces = readCharsToBuffer();
+        if (succces)
+        {
+            if (current == Character.MAX_VALUE) {
+                return succces;
+            }
+            System.arraycopy(charBuffer, 0, charBuffer, 1, this.charBuffer.length - 1);
+            charBuffer[0] = current;
+        }
+        return succces;
+
     }
 
     @Override
@@ -108,7 +126,7 @@ public class FileSourceReader extends SourceReader
     @Override
     protected char internalReadChar()
     {
-        validateFileSouce();
+        validateFileSource();
         if (isEndOfBuffer())
         {
             if (readCharsToBuffer())
@@ -128,7 +146,7 @@ public class FileSourceReader extends SourceReader
         }
     }
 
-    private void validateFileSouce()
+    private void validateFileSource()
     {
         if (Objects.isNull(this.fileSource))
         {
@@ -141,7 +159,7 @@ public class FileSourceReader extends SourceReader
         try
         {
             this.initCharBuffer();
-            if (getFileReader().read(this.charBuffer) > 0)
+            if (getFileReader().read(this.charBuffer, 0, charBuffer.length - 1) > 0)
             {
                 this.currentBufferPointer = -1;
                 return true;
@@ -180,7 +198,6 @@ public class FileSourceReader extends SourceReader
     {
         return getCharBufferSize().equals(getCurrentBufferPointer() + 1);
     }
-
 
     private void movePointer()
     {

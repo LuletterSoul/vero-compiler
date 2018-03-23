@@ -1,6 +1,8 @@
 package com.vero.compiler.syntax.core;
 
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -9,6 +11,7 @@ import java.util.Set;
 /**
  * Created by XiangDe Liu on 2018/3/7.
  */
+@Getter
 public class ProgramItem
 {
     private ProgramMonitor monitor;
@@ -23,14 +26,14 @@ public class ProgramItem
 
     public int index;
 
-    public ProgramItem(String left, List<String> right, int dot, List<String> lookAhead, int index)
-    {
-        this.right = right;
-        this.left = left;
-        this.dot = dot;
-        this.lookAhead = lookAhead;
-        this.index = index;
-    }
+//    public ProgramItem(String left, List<String> right, int dot, List<String> lookAhead, int index)
+//    {
+//        this.right = right;
+//        this.left = left;
+//        this.dot = dot;
+//        this.lookAhead = lookAhead;
+//        this.index = index;
+//    }
 
     public ProgramItem(String left, List<String> right, int dot, List<String> lookAhead, int index,
                        ProgramMonitor monitor)

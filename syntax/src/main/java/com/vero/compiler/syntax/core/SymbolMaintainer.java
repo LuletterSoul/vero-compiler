@@ -1,19 +1,24 @@
 package com.vero.compiler.syntax.core;
 
 
+import java.util.List;
+
 import com.vero.compiler.syntax.production.GrammarProductionManager;
 
-import java.util.List;
+import lombok.Data;
 
 
 /**
  * Created by XiangDe Liu on 2018/3/10.
  */
+@Data
 public class SymbolMaintainer
 {
-    public static String ACC_LEFT;
+    private String acceptLeft;
 
-    public static String ACC_RIGHT;
+    private String acceptRight;
+
+    private ProgramItem I0;
 
     private GrammarProductionManager productionManager;
 
@@ -39,7 +44,7 @@ public class SymbolMaintainer
         return this.productionManager.getProductCutMap().get(symbol);
     }
 
-    public static boolean hasEmpty(List<List<String>> rights)
+    public boolean hasEmpty(List<List<String>> rights)
     {
         for (List<String> symbols : rights)
         {
@@ -51,7 +56,7 @@ public class SymbolMaintainer
         return false;
     }
 
-    public static boolean isRecursion(List<String> rights, String left)
+    public boolean isRecursion(List<String> rights, String left)
     {
         return rights.get(0).equals(left);
     }

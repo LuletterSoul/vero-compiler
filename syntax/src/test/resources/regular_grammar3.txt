@@ -1,6 +1,6 @@
 ﻿﻿<var>→<alphabet>|<alphabet><number_alphabet>
 <number_alphabet>→<number>|<alphabet>|<number><number_alphabet>|<alphabet><number_alphabet>
-<keywords>→"const"|"Integer"|"Float"|"var"|"if"|"else"|"for"|"class"|"public"|"static"|"void"|"main"|"string"|"return"|"int"|"bool"|"while"|"System"|"Console"|"true"|"false"|"this"|"new"|"Complex"|"odd"
+<keywords>→"const"|"Integer"|"Float"|"var"|"if"|"else"|"for"|"class"|"public"|"static"|"void"|"main"|"string"|"return"|"int"|"bool"|"while"|"for"|System"|"Console"|"true"|"false"|"this"|"new"|"Complex"|"odd"
 <alphabet>→a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|h|y|z|A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|刘|祥|德
 <delimiter>→,|;|(|)
 <operator>→+|-|*|/|=
