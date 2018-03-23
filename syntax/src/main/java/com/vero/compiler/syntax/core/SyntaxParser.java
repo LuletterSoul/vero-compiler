@@ -109,15 +109,15 @@ public class SyntaxParser
             }
 
             ActionItem actionItem = actionItems.get(0);
-            if (actionItem.type.equals("s"))
+            if (actionItem.type.equals(ActionType.SHFIT))
             {
                 shift(actionItem.status);
             }
-            else if (actionItem.type.equals("r"))
+            else if (actionItem.type.equals(ActionType.REDUCE))
             {
                 reduce(actionItem.left, actionItem.status);
             }
-            else if (actionItem.type.equals("acc"))
+            else if (actionItem.type.equals(ActionType.ACCEPT))
             {
                 System.out.println("文法正确");
                 return;

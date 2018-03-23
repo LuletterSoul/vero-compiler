@@ -7,17 +7,17 @@ public class ActionItem
 {
     public Integer status;
 
-    public String type;
+    public ActionType type;
 
     public String left;
 
-    public ActionItem(Integer status, String type)
+    public ActionItem(Integer status, ActionType type)
     {
         this.status = status;
         this.type = type;
     }
 
-    public ActionItem(Integer index, String type, String left)
+    public ActionItem(Integer index, ActionType type, String left)
     {
         this.status = index;
         this.type = type;
@@ -26,14 +26,14 @@ public class ActionItem
 
     public String toString()
     {
-        if (type == "s")
-            return "s" + status;
+        if (type == ActionType.SHFIT)
+            return type.getAction() +"->"+ status;
         else
         {
             if (status == null)
-                return type;
+                return type.getAction();
             else
-                return type + status + "(" + left + ")";
+                return type.getAction() + status + "(" + left + ")";
         }
     }
 

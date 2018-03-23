@@ -1,0 +1,5 @@
+Pro - intsym mainsym ls rs ll Block rl
+Block - Statement
+Block - Statement Block
+Statement - intsym ident neq int sem
+Statement - if ls ident eql int rs ll Statement rl

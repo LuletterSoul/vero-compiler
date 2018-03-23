@@ -1,14 +1,14 @@
 package com.vero.compiler.syntax.core;
 
 
+import static com.vero.compiler.syntax.core.PrintUtils.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
-import static com.vero.compiler.syntax.core.PrintUtils.*;
 
 
 /**
@@ -47,7 +47,8 @@ public class SyntaxAnalysisTableGenerator
         this.initGrammar(this.maintainer.getI0());
         this.createActionTable();
         this.createGotoTable();
-        if (log.isDebugEnabled()) {
+        if (log.isDebugEnabled())
+        {
             printItems(getFamily());
             printActionTable(getACTION_TABLE());
             printGotoTable(getGOTO_TABLE());
@@ -66,7 +67,7 @@ public class SyntaxAnalysisTableGenerator
             for (String symbol : itemSet.shiftSymbol())
             {
                 List<ActionItem> actList = new ArrayList<>();
-                ActionItem actionItem = new ActionItem(itemSet.getStatus(symbol), "s");
+                ActionItem actionItem = new ActionItem(itemSet.getStatus(symbol), ActionType.SHFIT);
                 actList.add(actionItem);
                 table.put(symbol, actList);
             }
@@ -75,15 +76,20 @@ public class SyntaxAnalysisTableGenerator
             for (ProgramItem item : itemSet.reduceItems())
             {
                 ActionItem actionItem;
-                if (item.left.equals(ExtentionSymbol.ACCEPT_LEFT) && item.right.size() == 1
-                    && item.right.get(0).equals(ExtentionSymbol.ACCEPT_RIGHT)
-                    && item.lookAhead.contains(ExtentionSymbol.ACCEPT_RIGHT))
+                if (log.isDebugEnabled())
                 {
-                    actionItem = new ActionItem(null, "acc");
+                    log.debug("Reduce item right: [{}]-----size:[{}]----lookAhead:[{}]----",
+                        item.getRight().get(0), item.getRight().size(), item.lookAhead);
+                }
+                if (item.left.equals(this.maintainer.getAcceptLeft()) && item.right.size() == 1
+                    && item.right.get(0).equals(this.maintainer.getAcceptRight())
+                    && item.lookAhead.contains("$"))
+                {
+                    actionItem = new ActionItem(null, ActionType.ACCEPT);
                 }
                 else
                 {
-                    actionItem = new ActionItem(item.index, "r", item.left);
+                    actionItem = new ActionItem(item.index, ActionType.REDUCE, item.left);
                 }
 
                 for (String symbol : item.getLookAhead())

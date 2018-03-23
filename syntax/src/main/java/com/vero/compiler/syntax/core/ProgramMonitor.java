@@ -69,10 +69,10 @@ public class ProgramMonitor
     public void extendGrammar()
     {
         List<String> right = new ArrayList<>();
-        right.add("E");
+        right.add("<E>");
         List<String> lookAhead = new ArrayList<>();
         lookAhead.add("$");
-        ProgramItem extendItem = new ProgramItem("E'", right, -1, lookAhead, -1, this);
+        ProgramItem extendItem = new ProgramItem("<E'>", right, -1, lookAhead, -1, this);
         this.maintainer.setAcceptLeft(extendItem.getLeft());
         this.maintainer.setAcceptRight(extendItem.getRight().get(0));
         this.maintainer.setI0(extendItem);
@@ -146,6 +146,13 @@ public class ProgramMonitor
         }
     }
 
+    /**
+     * 严格判等
+     * 要求每个项目集的所有元素
+     * 相等时才相等
+     * @param init
+     * @return
+     */
     private int isItemExist(List<ProgramItem> init)
     {
         for (int index = 0; index < family.size(); index++ )

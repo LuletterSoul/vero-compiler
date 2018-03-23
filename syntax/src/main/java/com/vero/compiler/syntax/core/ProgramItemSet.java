@@ -34,34 +34,17 @@ public class ProgramItemSet
         }
     }
 
-    public ProgramItemSet(ProgramItem item)
-    {
-        this.container = new ArrayList<>();
-        this.status = new HashMap<>();
-        this.addItem(item);
-    }
 
     public void addItem(ProgramItem item)
     {
         this.container.add(item);
     }
 
-    // //---------------------------------
-    // // 可以Goto的项
-    // public List<String> getProIds(){
-    // List<String> steps = new ArrayList<>();
-    // int i = 0;
-    // for(ProgramItem item : container) {
-    // //---------------------------------
-    // // 产生式右侧不为空 且 点未到末端
-    // if(!item.dotAtEnd() && !item.right.get(0).equals("ε")){
-    // steps.add(item.getDotRight());
-    // }
-    // i++;
-    // }
-    // return steps;
-    // }
 
+    /**
+     * 求圆点右侧Token所在项目规范集的所有索引
+     * @return
+     */
     public HashMap<String, List<Integer>> getProIds()
     {
         HashMap<String, List<Integer>> symbolMap = new HashMap<>();
@@ -99,8 +82,7 @@ public class ProgramItemSet
         this.status.put(step, status);
     }
 
-    // --------------------------------
-    // 点移动后的项
+
     public List<ProgramItem> statusInitialize(List<Integer> steps)
     {
         List<ProgramItem> init = new ArrayList<>();
