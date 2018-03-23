@@ -68,7 +68,7 @@ public class FileSourceReader extends SourceReader
     {
         this.charBuffer = new char[this.charBufferSize];
         this.initCharBuffer();
-        this.currentBufferPointer = charBufferSize -1;
+        this.currentBufferPointer = charBufferSize -2;
     }
 
     @Override
@@ -76,7 +76,6 @@ public class FileSourceReader extends SourceReader
     {
         if (isPeekEndOfBuffer())
         {
-            log.debug("Buffer over flow.");
             if (handleOverflow())
             {
                 return (int)getCharBuffer()[this.currentBufferPointer + 1];
@@ -197,7 +196,7 @@ public class FileSourceReader extends SourceReader
 
     private boolean isPeekEndOfBuffer()
     {
-        return getCharBufferSize().equals(getCurrentBufferPointer() + 1);
+        return getCharBufferSize().equals(getCurrentBufferPointer() + 2);
     }
 
     private void movePointer()

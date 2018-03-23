@@ -3,6 +3,7 @@ package com.vero.compiler.lexer.token;
 
 import com.google.common.base.Objects;
 
+import com.vero.compiler.lexer.expression.RegularExpression;
 import lombok.Data;
 
 
@@ -22,11 +23,14 @@ public class Token
 
     private Integer lexerIndex;
 
-    public Token(Integer index, String description, Integer lexerIndex)
+    private RegularExpression definition;
+
+    public Token(Integer index, String description, Integer lexerIndex,RegularExpression definition)
     {
         this.index = index;
         this.description = description;
         this.lexerIndex = lexerIndex;
+        this.definition = definition;
     }
 
     @Override

@@ -4,10 +4,9 @@ package com.vero.compiler.syntax.core;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import com.vero.compiler.lexer.core.Lexeme;
+import com.vero.compiler.lexer.token.TokenType;
 import com.vero.compiler.syntax.production.GrammarProductionManager;
 
 import lombok.Getter;
@@ -53,21 +52,16 @@ public class ProgramMonitor
 
     /**
      * 输入Token流
-     * 
-     * @param lexemes
+     *
+     * @param tokenStream
      */
-    public void monitor(List<Lexeme> lexemes)
+    public void monitor(List<String> tokenStream)
     {
-        List<Lexeme> streams = lexemes.stream().filter(filter()).collect(Collectors.toList());
+        List<String> streams = tokenStream.stream().filter(
+            t -> !t.equals(TokenType.SKIPPABLE.getType())).collect(Collectors.toList());
         SyntaxDriverInfo driverInfo = generator.generate();
         SyntaxParser parser = new SyntaxParser(driverInfo, getMaintainer());
         parser.parse(streams);
-    }
-
-    private Predicate<Lexeme> filter()
-    {
-        return l -> !l.getContent().contains(" ") && !l.getContent().contains("\r\n")
-                    && !l.getContent().contains("\t");
     }
 
     /**

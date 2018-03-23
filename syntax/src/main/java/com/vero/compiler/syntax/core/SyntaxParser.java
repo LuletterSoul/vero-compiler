@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.vero.compiler.lexer.core.Lexeme;
-
 import lombok.Getter;
 
 
@@ -35,12 +33,9 @@ public class SyntaxParser
         this.maintainer = maintainer;
     }
 
-    private void initStacks(List<Lexeme> lexemes)
+    private void initStacks(List<String> streams)
     {
-        for (Lexeme lexeme : lexemes)
-        {
-            this.INPUT_STACK.add(lexeme.getContent());
-        }
+        this.INPUT_STACK.addAll(streams);
         this.INPUT_STACK.add("$");
         this.STATUS_STACK.add(0);
     }
@@ -89,10 +84,10 @@ public class SyntaxParser
         STATUS_STACK.add(nextStatus);
     }
 
-    public void parse(List<Lexeme> lexemes)
+    public void parse(List<String> stream)
     {
         reset();
-        initStacks(lexemes);
+        initStacks(stream);
         while (true)
         {
             String lookAhead = getLookAhead();

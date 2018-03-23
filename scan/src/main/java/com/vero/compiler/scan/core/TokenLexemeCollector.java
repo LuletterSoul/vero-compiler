@@ -1,6 +1,7 @@
 package com.vero.compiler.scan.core;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +26,8 @@ public class TokenLexemeCollector extends DefaultLexemeCollector
 
     private List<Map<Integer, TokenType>> index2TokenType;
 
+    private List<String> tokenTypeStream = new ArrayList<>();
+
     public TokenLexemeCollector(Scanner scanner, LexerTransitionInfo lexerTransitionInfo,
                                 TokenDefinitions lexerTokenDefinitions)
     {
@@ -47,11 +50,22 @@ public class TokenLexemeCollector extends DefaultLexemeCollector
     {
         if (lexeme.isEndOfStream())
         {
-            lexeme2TokenType.put(lexeme.getContent(), TokenType.EOF.getType());
+            lexeme2TokenDetail.put(lexeme.getContent(), TokenType.EOF.getType());
             return;
         }
         TokenType tokenType = index2TokenType.get(lexerTransitionInfo.getLexerState()).get(
             lexeme.getTokenIndex());
-        lexeme2TokenType.put(lexeme.getContent(), tokenType.getTypeDetail());
+        lexeme2TokenDetail.put(lexeme.getContent(), tokenType.getTypeDetail());
+
+        if (tokenType == TokenType.VAR || tokenType == TokenType.UNSIGNED_NUMBER
+            || tokenType == TokenType.SKIPPABLE)
+        {
+            tokenTypeStream.add(tokenType.getType());
+        }
+        else
+        {
+            tokenTypeStream.add(lexeme.getContent());
+        }
+
     }
 }

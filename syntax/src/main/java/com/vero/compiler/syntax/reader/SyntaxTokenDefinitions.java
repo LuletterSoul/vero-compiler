@@ -13,6 +13,7 @@ import com.vero.compiler.lexer.expression.RegularExpression;
 import com.vero.compiler.lexer.token.Token;
 import com.vero.compiler.scan.core.DefaultTokenDefinitions;
 
+import jdk.nashorn.internal.ir.Symbol;
 import lombok.Getter;
 
 
@@ -33,6 +34,8 @@ public class SyntaxTokenDefinitions extends DefaultTokenDefinitions
     public Token BANF_DELIMITER;
 
     public Token UNION_DELIMITER;
+
+    public Token SYNTAX_TERMINAL;
 
     private RegularExpression lexerTokenExpressionsUnion;
 
@@ -60,6 +63,10 @@ public class SyntaxTokenDefinitions extends DefaultTokenDefinitions
             Range('A', 'Z').Union(Symbol('_').Union(Range('a','z'))).Many1()).Union(Symbol('\'')).Concat(Symbol('>'));
         this.SYNTAX_NO_TERMINAL = syntaxLexer.defineToken(syntaxNoTerminal);
         syntaxRegularExpressionList.add(syntaxNoTerminal);
+
+        RegularExpression terminals = RegularExpression.Range('a', 'z').Union(Range('A', 'Z')).Union(Symbol('_')).Many();
+        this.SYNTAX_TERMINAL = syntaxLexer.defineToken(terminals);
+        syntaxRegularExpressionList.add(terminals);
 
         RegularExpression BANF_delimiter = RegularExpression.Literal("::=");
         this.BANF_DELIMITER = syntaxLexer.defineToken(BANF_delimiter);

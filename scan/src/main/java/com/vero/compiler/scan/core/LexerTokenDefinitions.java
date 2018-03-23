@@ -38,6 +38,12 @@ public class LexerTokenDefinitions extends DefaultTokenDefinitions
     // 空格
     private Token WHITESPACE;
 
+    // 回车换行
+    private Token LINE_BREAKER;
+
+    // 制表符
+    private Token TABLE;
+
     // 无符号实数
     private Token UNSIGNED_NUMBER;
 
@@ -50,11 +56,11 @@ public class LexerTokenDefinitions extends DefaultTokenDefinitions
     // 界符
     private Token DELIMITER;
 
-    //回车换行
-    private Token LINE_BREAKER;
-
-    //空符
+    // 空符
     private Token EMPTY;
+
+    // 可忽略的字符
+    private Token SKIPPABLE;
 
     private Token RE_DelimitedCommentSection;
 
@@ -66,7 +72,6 @@ public class LexerTokenDefinitions extends DefaultTokenDefinitions
     {
 
         initTokenDefinitions(lexicon, tokenExpressions);
-        mapTokenIndexToTokenType(this.LINE_BREAKER, TokenType.LINE_BREAKER);
     }
 
     @Override
@@ -85,9 +90,21 @@ public class LexerTokenDefinitions extends DefaultTokenDefinitions
             "identifier");
         mapTokenIndexToTokenType(this.VAR_NAME, TokenType.VAR);
 
-        // 空格
-        this.WHITESPACE = lexer.defineToken(Symbol(' ').Many());
-        mapTokenIndexToTokenType(this.WHITESPACE, TokenType.WHITESPACE);
+        this.SKIPPABLE = lexer.defineToken(
+                Symbol(' ').Union(Literal("\r\n")).Union(
+                        Symbol('\t')).Many());
+        mapTokenIndexToTokenType(this.SKIPPABLE, TokenType.SKIPPABLE);
+
+//        // 空格
+//        this.WHITESPACE = lexer.defineToken(Symbol(' ').Many());
+//        mapTokenIndexToTokenType(this.WHITESPACE, TokenType.WHITESPACE);
+//
+//        this.LINE_BREAKER = lexer.defineToken(Literal("\r\n").Many());
+//        mapTokenIndexToTokenType(this.LINE_BREAKER, TokenType.LINE_BREAKER);
+//
+//        this.TABLE = lexer.defineToken(Symbol('\t'));
+//        mapTokenIndexToTokenType(this.TABLE, TokenType.T);
+
 
         RegularExpression ex = tokenExpressions[TokenType.UNSIGNED_NUMBER.getPriority()];
 
@@ -108,8 +125,6 @@ public class LexerTokenDefinitions extends DefaultTokenDefinitions
         mapTokenIndexToTokenType(this.DELIMITER, TokenType.OPERATOR);
 
         // 回车换行
-        this.LINE_BREAKER = lexer.defineToken(Literal("\r\n"));
-        mapTokenIndexToTokenType(this.LINE_BREAKER, TokenType.LINE_BREAKER);
 
         this.EMPTY = lexer.defineToken(Symbol('ε'));
         mapTokenIndexToTokenType(this.EMPTY, TokenType.EMPTY);

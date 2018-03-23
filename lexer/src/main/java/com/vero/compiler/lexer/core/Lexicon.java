@@ -53,7 +53,7 @@ public class Lexicon
                               String description)
     {
         int index = tokenList.size();
-        Token tag = new Token(index, description, state.getIndex());
+        Token tag = new Token(index, description, state.getIndex(),definition);
         TokenInfo token = new TokenInfo(definition, this, state, tag);
         tokenList.add(token);
         return token;

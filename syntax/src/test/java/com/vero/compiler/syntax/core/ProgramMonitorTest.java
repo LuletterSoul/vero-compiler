@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.vero.compiler.scan.core.TokenLexemeCollector;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -87,14 +88,17 @@ public class ProgramMonitorTest
     public void monitor()
     {
         URL f1 = Thread.currentThread().getContextClassLoader().getResource(
-            "lexer_syntax_test2.txt");
+            "lexer_syntax_test1.txt");
         ProgramMonitor monitor = new ProgramMonitor(
             new GrammarProductionManager(this.rowProductions, this.productionCutMap));
-        LexemeCollector lexemeCollector = this.lexerLexiconContent.buildCollector();
+        LexemeCollector collector = this.lexerLexiconContent.buildCollector();
+        TokenLexemeCollector lexemeCollector = null;
+        if (collector instanceof TokenLexemeCollector) {
+            lexemeCollector = (TokenLexemeCollector) collector;
+        }
         lexemeCollector.collect(new File(Objects.requireNonNull(f1).getFile()));
-        //过滤空格
-        List<Lexeme> lexemes = lexemeCollector.getLexemeStream();
-        monitor.monitor(lexemes);
+        List<String> tokenStream = lexemeCollector.getTokenTypeStream();
+        monitor.monitor(tokenStream);
     }
 
 }

@@ -36,7 +36,8 @@ public class DefaultLexemeCollector implements LexemeCollector
 
     protected List<CompilationError> errors = new ArrayList<>();
 
-    protected Map<String, String> lexeme2TokenType = new HashMap<>();
+    protected Map<String, String> lexeme2TokenDetail = new HashMap<>();
+
 
     public DefaultLexemeCollector(Scanner scanner, LexerTransitionInfo lexerTransitionInfo)
     {
@@ -59,7 +60,7 @@ public class DefaultLexemeCollector implements LexemeCollector
         }
         // 保存扫描过程的错误
         this.errors = scanner.getErrorsList();
-        return lexeme2TokenType;
+        return lexeme2TokenDetail;
     }
 
     private void debugMessage(Lexeme lexeme)
@@ -73,7 +74,7 @@ public class DefaultLexemeCollector implements LexemeCollector
     private void prepareCollect(File source)
     {
         this.lexemeStream.clear();
-        this.lexeme2TokenType.clear();
+        this.lexeme2TokenDetail.clear();
         scanner.changeSourceFile(source);
     }
 

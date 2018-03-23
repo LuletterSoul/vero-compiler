@@ -49,9 +49,9 @@ public class SyntaxAnalysisTableGenerator
         this.createGotoTable();
         if (log.isDebugEnabled())
         {
-            printItems(getFamily());
+//            printItems(getFamily());
             printActionTable(getACTION_TABLE());
-            printGotoTable(getGOTO_TABLE());
+//            printGotoTable(getGOTO_TABLE());
         }
         return new SyntaxDriverInfo(getACTION_TABLE(), getGOTO_TABLE());
     }
