@@ -1,20 +1,26 @@
 package com.vero.compiler.syntax.core;
 
 
+import lombok.Getter;
+
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 
 
 /**
  * Created by XiangDe Liu on 2018/3/6.
  */
+@Getter
 public class ProgramItemSet
 {
-    public ArrayList<ProgramItem> container;
+    public List<ProgramItem> container;
 
     public HashMap<String, Integer> status;
 
-    public ProgramItemSet(ArrayList<ProgramItem> items)
+    private SymbolMaintainer maintainer;
+
+    public ProgramItemSet(List<ProgramItem> items)
     {
         this.container = new ArrayList<>();
         this.status = new HashMap<>();
@@ -38,8 +44,8 @@ public class ProgramItemSet
 
     // //---------------------------------
     // // 可以Goto的项
-    // public ArrayList<String> getProIds(){
-    // ArrayList<String> steps = new ArrayList<>();
+    // public List<String> getProIds(){
+    // List<String> steps = new ArrayList<>();
     // int i = 0;
     // for(ProgramItem item : container) {
     // //---------------------------------
@@ -52,27 +58,25 @@ public class ProgramItemSet
     // return steps;
     // }
 
-    public HashMap<String, ArrayList<Integer>> getProIds()
+    public HashMap<String, List<Integer>> getProIds()
     {
-        HashMap<String, ArrayList<Integer>> symbolMap = new HashMap<>();
+        HashMap<String, List<Integer>> symbolMap = new HashMap<>();
         for (int i = 0; i < container.size(); ++i)
         {
             ProgramItem item = container.get(i);
-
-            // ---------------------------------
-            // 产生式右侧不为空 且 点未到末端
+            // 产生式右侧不为空 且点未到末端
             if (!item.dotAtEnd() && !item.right.get(0).equals("ε"))
             {
                 String symbol = item.right.get(item.dot + 1);
                 if (!symbolMap.keySet().contains(symbol))
                 {
-                    ArrayList<Integer> arr = new ArrayList<>();
+                    List<Integer> arr = new ArrayList<>();
                     arr.add(i);
                     symbolMap.put(item.right.get(item.dot + 1), arr);
                 }
                 else
                 {
-                    ArrayList<Integer> arr = symbolMap.get(symbol);
+                    List<Integer> arr = symbolMap.get(symbol);
                     arr.add(i);
                     symbolMap.put(item.right.get(item.dot + 1), arr);
                 }
@@ -93,9 +97,9 @@ public class ProgramItemSet
 
     // --------------------------------
     // 点移动后的项
-    public ArrayList<ProgramItem> statusInitialize(ArrayList<Integer> steps)
+    public List<ProgramItem> statusInitialize(List<Integer> steps)
     {
-        ArrayList<ProgramItem> init = new ArrayList<>();
+        List<ProgramItem> init = new ArrayList<>();
         for (Integer i : steps)
         {
             ProgramItem item = container.get(i);
@@ -105,13 +109,13 @@ public class ProgramItemSet
         return init;
     }
 
-    public ArrayList<String> shiftSymbol()
+    public List<String> shiftSymbol()
     {
-        ArrayList<String> symbols = new ArrayList<>();
+        List<String> symbols = new ArrayList<>();
         for (ProgramItem item : container)
         {
             if (!item.dotAtEnd() && !item.right.get(0).equals("ε")
-                && Utils.isTerminal(item.getDotRight()))
+                && maintainer.isTerminal(item.getDotRight()))
             {
                 symbols.add(item.getDotRight());
             }
@@ -119,9 +123,9 @@ public class ProgramItemSet
         return symbols;
     }
 
-    public ArrayList<ProgramItem> reduceItems()
+    public List<ProgramItem> reduceItems()
     {
-        ArrayList<ProgramItem> items = new ArrayList<>();
+        List<ProgramItem> items = new ArrayList<>();
         for (ProgramItem item : container)
         {
             if (item.dotAtEnd()) items.add(
@@ -130,13 +134,13 @@ public class ProgramItemSet
         return items;
     }
 
-    public ArrayList<String> gotoSymbol()
+    public List<String> gotoSymbol()
     {
-        ArrayList<String> symbols = new ArrayList<>();
+        List<String> symbols = new ArrayList<>();
         for (ProgramItem item : container)
         {
             if (!item.dotAtEnd() && !item.right.get(0).equals("ε")
-                && !Utils.isTerminal(item.getDotRight()))
+                && !maintainer.isTerminal(item.getDotRight()))
             {
                 symbols.add(item.getDotRight());
             }

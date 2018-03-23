@@ -3,30 +3,42 @@ package com.vero.compiler.syntax.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+
+import com.vero.compiler.syntax.production.GrammarProductionManager;
+import lombok.Getter;
 
 
 /**
  * Created by XiangDe Liu on 2018/3/7.
  */
+@Getter
 public class ProgramMonitor
 {
-    public static ArrayList<ProgramItemSet> setFamily = new ArrayList<>();
+    private SymbolMaintainer maintainer;
 
+    private GrammarProductionManager productionManager;
 
-    public ProgramMonitor() {
+    private SyntaxAnalysisTableGenerator generator;
+
+    public ProgramMonitor(GrammarProductionManager productionManager)
+    {
+        this.productionManager = productionManager;
+        this.maintainer = new SymbolMaintainer(productionManager);
+        this.generator = new SyntaxAnalysisTableGenerator(this.family, this.maintainer);
     }
 
-    public static void items(ProgramItem augmentedGrammar)
+    public void items(ProgramItem augmentedGrammar)
     {
-        ArrayList<ProgramItem> arr = new ArrayList<>();
+        List<ProgramItem> arr = new ArrayList<>();
         arr.add(augmentedGrammar);
         ProgramItemSet I0 = closure(arr);
-        setFamily.add(I0);
+        family.add(I0);
 
-        for (int i = 0; i < setFamily.size(); ++i)
+        for (int i = 0; i < family.size(); ++i)
         {
-            ProgramItemSet I = setFamily.get(i);
-            HashMap<String, ArrayList<Integer>> ids = I.getProIds();
+            ProgramItemSet I = family.get(i);
+            HashMap<String, List<Integer>> ids = I.getProIds();
             for (String key : ids.keySet())
             {
                 Goto(I, ids.get(key), key);
@@ -34,7 +46,7 @@ public class ProgramMonitor
         }
     }
 
-    private static ProgramItemSet closure(ArrayList<ProgramItem> startItem)
+    private ProgramItemSet closure(List<ProgramItem> startItem)
     {
         // 状态初始项
         ProgramItemSet I = new ProgramItemSet(startItem);
@@ -43,19 +55,19 @@ public class ProgramMonitor
         {
             ProgramItem item = I.container.get(i);
 
-            if (!item.dotAtEnd() && item.NextIsInterminal())
+            if (!item.dotAtEnd() && item.nextIsNoTerminal())
             {
 
-                ArrayList<String> lookAhead = new ArrayList<>();
-                ArrayList<String> beta = item.getBeta();
+                List<String> lookAhead = new ArrayList<>();
+                List<String> beta = item.getBeta();
                 if (beta != null) lookAhead.addAll(first(beta));
                 if (lookAhead.isEmpty()) lookAhead.addAll(item.getLookAhead());
 
                 String left = item.getDotRight();
-                ArrayList<ArrayList<String>> rights = Utils.getRights(left);
+                List<List<String>> rights = maintainer.getRights(left);
 
                 int index = 0;
-                for (ArrayList<String> right : rights)
+                for (List<String> right : rights)
                 {
                     ProgramItem extendItem = new ProgramItem(left, right, -1, lookAhead, index);
                     if (!inI(I, extendItem))
@@ -69,9 +81,9 @@ public class ProgramMonitor
         return I;
     }
 
-    private static void Goto(ProgramItemSet I, ArrayList<Integer> ids, String key)
+    private void Goto(ProgramItemSet I, List<Integer> ids, String key)
     {
-        ArrayList<ProgramItem> initItems = I.statusInitialize(ids);
+        List<ProgramItem> initItems = I.statusInitialize(ids);
         int flag = IExist(initItems);
         if (flag != -1)
         {
@@ -79,17 +91,17 @@ public class ProgramMonitor
         }
         else
         {
-            setFamily.add(closure(initItems));
-            I.setStatus(key, setFamily.size() - 1);
+            family.add(closure(initItems));
+            I.setStatus(key, family.size() - 1);
         }
     }
 
-    private static int IExist(ArrayList<ProgramItem> init)
+    private int IExist(List<ProgramItem> init)
     {
-        for (int index = 0; index < setFamily.size(); index++ )
+        for (int index = 0; index < family.size(); index++ )
         {
             int[] flag = new int[init.size()];
-            ProgramItemSet itemSet = setFamily.get(index);
+            ProgramItemSet itemSet = family.get(index);
             for (ProgramItem item : itemSet.container)
             {
                 for (int j = 0; j < init.size(); j++ )
@@ -111,7 +123,7 @@ public class ProgramMonitor
         return -1;
     }
 
-    private static boolean myEqual(ProgramItem i0, ProgramItem i1)
+    private boolean myEqual(ProgramItem i0, ProgramItem i1)
     {
         if (i0.left.equals(i1.left) && i0.dot == i1.dot && i0.right.equals(i1.right)
             && i0.lookAhead.equals(i1.lookAhead))
@@ -121,30 +133,30 @@ public class ProgramMonitor
         return false;
     }
 
-    private static ArrayList<String> first(ArrayList<String> bate)
+    private List<String> first(List<String> bate)
     {
-        ArrayList<String> firstSet = new ArrayList<>();
+        List<String> firstSet = new ArrayList<>();
 
         first(bate, firstSet, 0);
 
         return firstSet;
     }
 
-    private static String first(ArrayList<String> beta, ArrayList<String> firstSet, int index)
+    private String first(List<String> beta, List<String> firstSet, int index)
     {
         String finalSymbol;
-        ArrayList<String> record = new ArrayList<>();
+        List<String> record = new ArrayList<>();
         String left = beta.get(index);
 
-        if (!Utils.isTerminal(beta.get(index)) && !record.contains(left))
+        if (!maintainer.isTerminal(beta.get(index)) && !record.contains(left))
         {
             record.add(left);
-            ArrayList<ArrayList<String>> rights = Utils.getRights(left);
+            List<List<String>> rights = maintainer.getRights(left);
             for (int i = 0; i < rights.size(); ++i)
             {
-                if (Utils.isRecursion(rights.get(i), left))
+                if (maintainer.isRecursion(rights.get(i), left))
                 {
-                    if (Utils.hasEmpty(rights))
+                    if (maintainer.hasEmpty(rights))
                     {
                         rights.get(i).remove(0);
                     }
@@ -154,7 +166,7 @@ public class ProgramMonitor
                     }
                 }
             }
-            for (ArrayList<String> arr : rights)
+            for (List<String> arr : rights)
             {
                 finalSymbol = first(arr, firstSet, 0);
                 if (finalSymbol.equals("ε") && index < beta.size() - 1)
@@ -166,7 +178,7 @@ public class ProgramMonitor
         }
         else
         {
-            if (!left.equals("ε") && Utils.isTerminal(left))
+            if (!left.equals("ε") && maintainer.isTerminal(left))
             {
                 firstSet.add(left);
             }
@@ -174,7 +186,7 @@ public class ProgramMonitor
         }
     }
 
-    private static boolean inI(ProgramItemSet I, ProgramItem extendItem)
+    private boolean inI(ProgramItemSet I, ProgramItem extendItem)
     {
         for (ProgramItem item : I.container)
         {
@@ -187,7 +199,7 @@ public class ProgramMonitor
         return false;
     }
 
-    private static boolean prefixSame(ProgramItemSet I, ProgramItem extendItem)
+    private boolean prefixSame(ProgramItemSet I, ProgramItem extendItem)
     {
         for (ProgramItem item : I.container)
         {

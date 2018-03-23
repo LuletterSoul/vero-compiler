@@ -50,7 +50,11 @@ public class LexerTokenDefinitions extends DefaultTokenDefinitions
     // 界符
     private Token DELIMITER;
 
+    //回车换行
     private Token LINE_BREAKER;
+
+    //空符
+    private Token EMPTY;
 
     private Token RE_DelimitedCommentSection;
 
@@ -105,6 +109,10 @@ public class LexerTokenDefinitions extends DefaultTokenDefinitions
 
         // 回车换行
         this.LINE_BREAKER = lexer.defineToken(Literal("\r\n"));
+        mapTokenIndexToTokenType(this.LINE_BREAKER, TokenType.LINE_BREAKER);
+
+        this.EMPTY = lexer.defineToken(Symbol('ε'));
+        mapTokenIndexToTokenType(this.EMPTY, TokenType.EMPTY);
     }
 
     private void initMapping(Lexicon lexicon)

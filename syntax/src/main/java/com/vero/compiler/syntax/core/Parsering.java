@@ -47,7 +47,7 @@ public class Parsering
 
     public static void reduce(String left, int status)
     {
-        ArrayList<String> rights = Utils.getRights(left).get(status);
+        ArrayList<String> rights = SymbolMaintainer.getRights(left).get(status);
         int len = rights.size();
         // 符号栈、状态栈pop
         for (int i = 0; i < len; i++ )
@@ -57,7 +57,7 @@ public class Parsering
         }
 
         int curStatus = getCurStatus();
-        int nextStatus = ParserTable.GOTO_TABLE.get(curStatus).get(left);
+        int nextStatus = SyntaxAnalysisTableGenerator.GOTO_TABLE.get(curStatus).get(left);
 
         SYMBOL_STACK.add(left);
         STATUS_STACK.add(nextStatus);
@@ -70,9 +70,9 @@ public class Parsering
             String lookAhead = getLookAhead();
             ArrayList<ActionItem> actionItems;
             int curStatus = getCurStatus();
-            if (ParserTable.ACTION_TABLE.get(curStatus).containsKey(lookAhead))
+            if (SyntaxAnalysisTableGenerator.ACTION_TABLE.get(curStatus).containsKey(lookAhead))
             {
-                actionItems = ParserTable.ACTION_TABLE.get(curStatus).get(lookAhead);
+                actionItems = SyntaxAnalysisTableGenerator.ACTION_TABLE.get(curStatus).get(lookAhead);
             }
             else
             {

@@ -2,6 +2,8 @@ package com.vero.compiler.syntax.core;
 
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -9,18 +11,19 @@ import java.util.ArrayList;
  */
 public class ProgramItem
 {
+    private ProgramMonitor monitor;
+
     public String left;
 
-    public ArrayList<String> right;
+    public List<String> right;
 
-    public ArrayList<String> lookAhead;
+    public List<String> lookAhead;
 
     public int dot;
 
     public int index;
 
-    public ProgramItem(String left, ArrayList<String> right, int dot, ArrayList<String> lookAhead,
-                       int index)
+    public ProgramItem(String left, List<String> right, int dot, List<String> lookAhead, int index)
     {
         this.right = right;
         this.left = left;
@@ -29,37 +32,49 @@ public class ProgramItem
         this.index = index;
     }
 
-    public void addLookAhead(ArrayList<String> lookAhead)
+    public ProgramItem(String left, List<String> right, int dot, List<String> lookAhead, int index,
+                       ProgramMonitor monitor)
+    {
+
+        this.right = right;
+        this.left = left;
+        this.dot = dot;
+        this.lookAhead = lookAhead;
+        this.index = index;
+        this.monitor = monitor;
+    }
+
+    public Set<String> getNoTerminalSet()
+    {
+        return this.monitor.getProductionManager().getNoTerminalSet();
+    }
+
+    public void addLookAhead(List<String> lookAhead)
     {
         this.lookAhead.addAll(lookAhead);
     }
 
-    public boolean NextIsInterminal()
+    public boolean nextIsNoTerminal()
     {
         boolean status = false;
         int indexOfNext = dot + 1;
-        if (!dotAtEnd()
-            && GrammarProductionManager.noTerminalSet.contains(right.get(indexOfNext)))
+        if (!dotAtEnd() && getNoTerminalSet().contains(right.get(indexOfNext)))
         {
             status = true;
         }
         return status;
     }
 
-    public ArrayList<String> getLookAhead()
+    public List<String> getLookAhead()
     {
-        ArrayList<String> lookAhead = new ArrayList<>();
-        lookAhead.addAll(this.lookAhead);
-        return lookAhead;
+        return new ArrayList<>(this.lookAhead);
     }
 
-    public ArrayList<String> getBeta()
+    public List<String> getBeta()
     {
-        ArrayList<String> arr = new ArrayList<>();
         if (hasBeta())
         {
-            arr.addAll(right.subList(this.dot + 2, this.right.size()));
-            return arr;
+            return new ArrayList<>(right.subList(this.dot + 2, this.right.size()));
         }
         else
         {
@@ -78,8 +93,7 @@ public class ProgramItem
 
     public String getDotRight()
     {
-        String left = this.right.get(this.dot + 1);
-        return left;
+        return this.right.get(this.dot + 1);
     }
 
     public boolean dotAtEnd()

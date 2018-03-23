@@ -64,7 +64,6 @@ public class SyntaxGrammarParserTest
                 System.out.print(key + ": ");
                 System.out.println(productionCutMap.get(key));
             }
-
         }
         catch (IOException e)
         {

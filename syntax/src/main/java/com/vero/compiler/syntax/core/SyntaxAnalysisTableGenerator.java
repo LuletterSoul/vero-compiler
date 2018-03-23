@@ -3,28 +3,44 @@ package com.vero.compiler.syntax.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 
 /**
  * Created by XiangDe Liu on 2018/3/11.
  */
-public class ParserTable
+public class SyntaxAnalysisTableGenerator
 {
     public static ArrayList<HashMap<String, ArrayList<ActionItem>>> ACTION_TABLE = new ArrayList<>();
 
     public static ArrayList<HashMap<String, Integer>> GOTO_TABLE = new ArrayList<>();
+
+    public List<ProgramItemSet> family;
+
+    public SymbolMaintainer maintainer;
+
+    public SyntaxAnalysisTableGenerator(SymbolMaintainer maintainer)
+    {
+        this.family = family;
+        this.maintainer = maintainer;
+    }
 
     public static void initGrammar(ProgramItem augmentedGrammar)
     {
         ProgramMonitor.items(augmentedGrammar);
     }
 
+    public SyntaxAnalysisTableGenerator(List<ProgramItemSet> family)
+    {
+        this.family = family;
+    }
+
     public static void createAT()
     {
-        for (int i = 0; i < ProgramMonitor.setFamily.size(); i++ )
+        for (int i = 0; i < ProgramMonitor.family.size(); i++ )
         {
             HashMap<String, ArrayList<ActionItem>> table = new HashMap<>();
-            ProgramItemSet itemSet = ProgramMonitor.setFamily.get(i);
+            ProgramItemSet itemSet = ProgramMonitor.family.get(i);
 
             // 移入
             for (String symbol : itemSet.shiftSymbol())
@@ -39,8 +55,9 @@ public class ParserTable
             for (ProgramItem item : itemSet.reduceItems())
             {
                 ActionItem actionItem;
-                if (item.left.equals(Utils.ACC_LEFT) && item.right.size() == 1
-                    && item.right.get(0).equals(Utils.ACC_RIGHT) && item.lookAhead.contains("$"))
+                if (item.left.equals(SymbolMaintainer.ACC_LEFT) && item.right.size() == 1
+                    && item.right.get(0).equals(SymbolMaintainer.ACC_RIGHT)
+                    && item.lookAhead.contains("$"))
                 {
                     actionItem = new ActionItem(null, "acc");
                 }
@@ -71,10 +88,10 @@ public class ParserTable
 
     public static void createGT()
     {
-        for (int i = 0; i < ProgramMonitor.setFamily.size(); ++i)
+        for (int i = 0; i < ProgramMonitor.family.size(); ++i)
         {
             HashMap<String, Integer> gt = new HashMap<>();
-            ProgramItemSet itemSet = ProgramMonitor.setFamily.get(i);
+            ProgramItemSet itemSet = ProgramMonitor.family.get(i);
             for (String symbol : itemSet.gotoSymbol())
             {
                 gt.put(symbol, itemSet.getStatus(symbol));
