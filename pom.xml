@@ -12,6 +12,7 @@
         <module>parser</module>
         <module>exception</module>
         <module>lexer</module>
+        <module>scan</module>
         <module>common</module>
         <module>syntax</module>
         <module>web</module>
