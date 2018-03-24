@@ -1,12 +1,13 @@
 package com.vero.compiler.parser;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
@@ -16,22 +17,34 @@ import lombok.Setter;
  * @since vero-compiler
  */
 
-@Setter
-@Getter
+@Data
 public class RegularGrammarProduction
 {
     private String leftPart;
 
+
+    private String detail;
+
+    @JsonIgnore
     private List<List<String>> rightPart;
 
+    @JsonIgnore
     private Set<String> noTerminalSymbols;
 
     /**
      * 不含右递归的右部
      */
-    private List<List<String>> noRecursiveRightPart;
+    @JsonIgnore
+    private List<List<String>> noRecursiveRightPart = new ArrayList<>();
 
-    private Map<String, RegularGrammarProduction> globalRegularGrammarProductions;
+    @JsonIgnore
+    private Map<String, RegularGrammarProduction> globalRegularGrammarProductions = new HashMap<>();
+
+    public RegularGrammarProduction(String leftPart, String detail)
+    {
+        this.leftPart = leftPart;
+        this.detail = detail;
+    }
 
     public RegularGrammarProduction(Set<String> noTerminalSymbols)
     {
@@ -40,10 +53,11 @@ public class RegularGrammarProduction
     }
 
     public RegularGrammarProduction(Set<String> noTerminalSymbols, String leftPart,
-                                    List<List<String>> rightPart)
+                                    List<List<String>> rightPart, String detail)
     {
         this.leftPart = leftPart;
         this.rightPart = rightPart;
+        this.detail = detail;
         this.noTerminalSymbols = noTerminalSymbols;
         this.noRecursiveRightPart = new ArrayList<>();
     }
@@ -60,7 +74,8 @@ public class RegularGrammarProduction
             List<String> part = this.rightPart.get(i);
             for (int j = 0; j < part.size(); j++ )
             {
-                RegularGrammarProduction production = globalRegularGrammarProductions.get(part.get(j));
+                RegularGrammarProduction production = globalRegularGrammarProductions.get(
+                    part.get(j));
                 if (production != null)
                 {
                     marked[i] = production.getLeftPart().equals(this.getLeftPart())
@@ -73,7 +88,8 @@ public class RegularGrammarProduction
             }
         }
         boolean isRecursive = false;
-        for (int i = 0; i < marked.length; i++) {
+        for (int i = 0; i < marked.length; i++ )
+        {
             isRecursive = marked[i];
         }
         return isRecursive;

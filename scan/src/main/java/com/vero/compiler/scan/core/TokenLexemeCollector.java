@@ -9,6 +9,7 @@ import com.vero.compiler.lexer.core.Lexeme;
 import com.vero.compiler.lexer.info.LexerTransitionInfo;
 import com.vero.compiler.lexer.token.TokenType;
 
+import com.vero.compiler.parser.LexemeDto;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +28,8 @@ public class TokenLexemeCollector extends DefaultLexemeCollector
     private List<Map<Integer, TokenType>> index2TokenType;
 
     private List<String> tokenTypeStream = new ArrayList<>();
+
+    private List<LexemeDto> lexemeDtos = new ArrayList<>();
 
     public TokenLexemeCollector(Scanner scanner, LexerTransitionInfo lexerTransitionInfo,
                                 TokenDefinitions lexerTokenDefinitions)
@@ -56,7 +59,7 @@ public class TokenLexemeCollector extends DefaultLexemeCollector
         TokenType tokenType = index2TokenType.get(lexerTransitionInfo.getLexerState()).get(
             lexeme.getTokenIndex());
         lexeme2TokenDetail.put(lexeme.getContent(), tokenType.getTypeDetail());
-
+//        lexemeDtos.add(new A);
         if (tokenType == TokenType.VAR || tokenType == TokenType.UNSIGNED_NUMBER
             || tokenType == TokenType.SKIPPABLE)
         {

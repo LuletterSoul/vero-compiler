@@ -7,7 +7,7 @@ package com.vero.compiler.syntax.core;
  */
 
 public enum ActionType {
-    REDUCE("reduce", "归约"), SHFIT("shift", "移进"), ACCEPT("accept", "归约");
+    REDUCE("reduce", "归约"), SHFIT("shift", "移进"), ACCEPT("accept", "归约"),INVALID("invalid","非法");
 
     ActionType(String action, String description)
     {

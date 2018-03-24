@@ -4,12 +4,13 @@ package com.vero.compiler.syntax.core;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import com.vero.compiler.lexer.token.TokenType;
 import com.vero.compiler.syntax.production.GrammarProductionManager;
 
+import com.vero.compiler.syntax.result.AnalysisProcessor;
+import com.vero.compiler.syntax.table.SyntaxDriverInfo;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,6 +31,8 @@ public class ProgramMonitor
     private List<ProgramItemSet> family = new ArrayList<>();
 
     private AnalysisProcessor processor;
+
+    private SyntaxDriverInfo driverInfo;
 
     public ProgramMonitor(GrammarProductionManager productionManager, AnalysisProcessor processor)
     {
@@ -65,7 +68,7 @@ public class ProgramMonitor
     {
         List<String> streams = tokenStream.stream().filter(
             t -> !t.equals(TokenType.SKIPPABLE.getType())).collect(Collectors.toList());
-        SyntaxDriverInfo driverInfo = generator.generate();
+        this.driverInfo = generator.generate();
         SyntaxParser parser = new SyntaxParser(driverInfo, getMaintainer(), processor);
         parser.parse(streams);
     }

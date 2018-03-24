@@ -218,23 +218,6 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
-            <!--<plugin>-->
-            <!--<groupId>com.spotify</groupId>-->
-            <!--<artifactId>docker-maven-plugin</artifactId>-->
-            <!--<version>0.4.11</version>-->
-            <!--<configuration>-->
-            <!--<dockerHost>http://47.95.113.210:2375</dockerHost>-->
-            <!--<imageName>${docker.image.prefix}/${project.build.finalName}</imageName>-->
-            <!--<dockerDirectory>src/main/docker</dockerDirectory>-->
-            <!--<resources>-->
-            <!--<resource>-->
-            <!--<targetPath>/</targetPath>-->
-            <!--<directory>${project.build.directory}</directory>-->
-            <!--<include>${project.build.finalName}.jar</include>-->
-            <!--</resource>-->
-            <!--</resources>-->
-            <!--</configuration>-->
-            <!--</plugin>-->
         </plugins>
     </build>
 </project>

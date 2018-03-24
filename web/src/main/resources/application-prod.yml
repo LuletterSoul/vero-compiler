@@ -41,3 +41,9 @@ spring:
     password: root
     type: com.mchange.v2.c3p0.ComboPooledDataSource
     url: jdbc:mysql://localhost:3306/compiler_info?setUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true
+
+    logging:
+      level:
+        com:
+          vero:
+            compiler: DEBUG

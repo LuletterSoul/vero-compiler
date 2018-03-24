@@ -1,14 +1,21 @@
 package com.vero.compiler.web.configuration;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -47,7 +54,12 @@ public class SpringMvcConfiguration extends WebMvcConfigurerAdapter
     public void addInterceptors(InterceptorRegistry registry)
     {
         super.addInterceptors(registry);
-        // registry.addInterceptor(originalAccessHandler());
+         registry.addInterceptor(allowOriginFilter());
+    }
+
+    @Bean
+    public HandlerInterceptor allowOriginFilter() {
+        return new AllowOriginFilter();
     }
 
     // @Bean
@@ -95,27 +107,28 @@ public class SpringMvcConfiguration extends WebMvcConfigurerAdapter
 //        converters.add(jsonConverter());
 //    }
 
-//    @Bean
-//    public ObjectMapper objectMapper()
-//    {
-//        Jackson2ObjectMapperFactoryBean mapperFactoryBean = new Jackson2ObjectMapperFactoryBean();
-//        mapperFactoryBean.setDateFormat(new ConcurrencyDateFormatter());
-//        mapperFactoryBean.afterPropertiesSet();
-//        return mapperFactoryBean.getObject();
-//    }
+    @Bean
+    public ObjectMapper objectMapper()
+    {
+        Jackson2ObjectMapperFactoryBean mapperFactoryBean = new Jackson2ObjectMapperFactoryBean();
+        mapperFactoryBean.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapperFactoryBean.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        mapperFactoryBean.afterPropertiesSet();
+        return mapperFactoryBean.getObject();
+    }
 
-//    @Bean
-//    public MappingJackson2HttpMessageConverter jsonConverter()
-//    {
-//        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-//        List<MediaType> supportedMediaType = new ArrayList<MediaType>();
-//        supportedMediaType.add(MediaType.APPLICATION_JSON_UTF8);
-//        supportedMediaType.add(MediaType.TEXT_PLAIN);
-//        supportedMediaType.add(MediaType.TEXT_HTML);
-//        converter.setSupportedMediaTypes(supportedMediaType);
-//        converter.setObjectMapper(objectMapper());
-//        return converter;
-//    }
+    @Bean
+    public MappingJackson2HttpMessageConverter jsonConverter()
+    {
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        List<MediaType> supportedMediaType = new ArrayList<MediaType>();
+        supportedMediaType.add(MediaType.APPLICATION_JSON_UTF8);
+        supportedMediaType.add(MediaType.TEXT_PLAIN);
+        supportedMediaType.add(MediaType.TEXT_HTML);
+        converter.setSupportedMediaTypes(supportedMediaType);
+        converter.setObjectMapper(objectMapper());
+        return converter;
+    }
 
     // @Bean
     // public AuthorizationAttributeSourceAdvisor

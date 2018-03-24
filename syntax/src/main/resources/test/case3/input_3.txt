@@ -1,0 +1,21 @@
+int main(){
+    int equal = 1;
+    int isCorrect = 1;
+    int myInt = 123;
+    ++myInt;
+    if( equal){
+        myInt = 123e124;
+        isCorrect = 1;
+    }
+    else{
+       myInt = 125e125;
+       isCorrect = 0;
+    }
+    while(isCorrect){
+        ++myInt;
+    }
+    for(isCorrect){
+        ++myInt;
+    }
+    return isEqual;
+}

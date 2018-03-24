@@ -68,6 +68,9 @@ public class RegularGrammarFileParser
     public RegularExpression[] parse(File grammarSource)
         throws IOException
     {
+        this.getGrammarProductionDefinitions().clear();
+        this.grammarProductionMap.clear();
+        this.grammarProductions.clear();
         BufferedReader bufferedReader = loadGrammarSource(grammarSource);
         String str = null;
         while ((str = bufferedReader.readLine()) != null)
@@ -187,7 +190,7 @@ public class RegularGrammarFileParser
                 return;
             }
             RegularGrammarProduction grammarProduction = new RegularGrammarProduction(
-                getNoTerminalSymbols(), currentLeftPart, rightParts);
+                getNoTerminalSymbols(), currentLeftPart, rightParts,pd);
             grammarProduction.setRightPart(rightParts);
             grammarProductionMap.put(currentLeftPart, grammarProduction);
             grammarProductions.add(grammarProduction);

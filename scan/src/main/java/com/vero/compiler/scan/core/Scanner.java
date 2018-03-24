@@ -225,6 +225,7 @@ public class Scanner
 
     public void changeSourceFile(File file)
     {
+        this.initialize();
         this.sourceReader.loadFileSource(file);
     }
 }

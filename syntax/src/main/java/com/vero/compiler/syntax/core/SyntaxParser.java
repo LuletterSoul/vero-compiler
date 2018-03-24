@@ -6,10 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.vero.compiler.exception.ParseException;
+import com.vero.compiler.syntax.result.AnalysisProcessor;
+import com.vero.compiler.syntax.table.SyntaxDriverInfo;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.swing.*;
 
 
 /**
@@ -75,7 +75,7 @@ public class SyntaxParser
         STATUS_STACK.add(status);
     }
 
-    private void reduce(String left, int status)
+    private Integer reduce(String left, int status)
     {
         List<List<String>> rights = this.maintainer.getRights(left);
         if (rights.size() <= status) {
@@ -99,6 +99,7 @@ public class SyntaxParser
 
         SYMBOL_STACK.add(left);
         STATUS_STACK.add(nextStatus);
+        return nextStatus;
     }
 
     public void parse(List<String> stream)
@@ -121,31 +122,33 @@ public class SyntaxParser
             }
 
             ActionItem actionItem = actionItems.get(0);
-            if (actionItem.type.equals(ActionType.SHFIT))
+            if (actionItem.getType().equals(ActionType.SHFIT))
             {
-                shift(actionItem.status);
-                notifyProcessor();
+                notifyProcessor(actionItem);
+                shift(actionItem.getStatus());
             }
-            else if (actionItem.type.equals(ActionType.REDUCE))
+            else if (actionItem.getType().equals(ActionType.REDUCE))
             {
-                reduce(actionItem.left, actionItem.status);
-                notifyProcessor();
+                ActionItem action = new ActionItem(actionItem.getStatus(), actionItem.getType(), actionItem.getLeft());
+                notifyProcessor(action);
+                Integer next = reduce(actionItem.getLeft(), actionItem.getStatus());
+                action.setNextStatus(next);
+                log.debug("Action next status:[{}]",action.getNextStatus());
             }
-            else if (actionItem.type.equals(ActionType.ACCEPT))
+            else if (actionItem.getType().equals(ActionType.ACCEPT))
             {
                 log.debug("Text Accepted.");
-                notifyProcessor();
                 return;
             }
         }
     }
 
-    private void notifyProcessor()
+    private void notifyProcessor(ActionItem action)
     {
         this.processor.processStatusStack(this.STATUS_STACK);
         this.processor.processInputStack(this.INPUT_STACK);
         this.processor.processSymbolStack(this.SYMBOL_STACK);
-        this.processor.process(this.INPUT_STACK, this.STATUS_STACK, this.SYMBOL_STACK);
+        this.processor.process(this.INPUT_STACK, this.STATUS_STACK, this.SYMBOL_STACK,action);
     }
 
     private void reset()

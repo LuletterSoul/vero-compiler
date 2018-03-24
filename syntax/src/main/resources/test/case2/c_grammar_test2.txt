@@ -1,0 +1,31 @@
+<E'>::=<E>
+<E>::=<program>
+<self_op> ::= ++ | --
+<h_logic_op> ::= &&
+<ll_logic_op> ::= ||
+<h_math_op> ::= * | / | %
+<l_math_op> ::= + | -
+<eql> ::= =
+<judge_op> ::= == | != | >= | <= | > | <
+<identifier> ::= if | else | then
+<program> ::= int main() <block>
+<type> ::= int | bool | Integer | Float
+<block> ::= { <statements> return unsigned_number ; } | { <statements> return var ; }
+<declarations> ::=<declaration><declarations>
+<declaration> ::= <type> <array>|<type> <assignment>
+<array> ::= var [ unsigned_number ] | var [ var ] | var
+<statements> ::= <statement><statements> | <statement>
+<bool_value> ::= true | false
+<statement> ::= <declarations>|if ( <bool> )  <statement>| if ( <bool> )  <statement>  else  <statement>
+<for_a> ::= <assignment> | ε
+<for_b> ::= <bool> | ε
+<for_c> ::= <for_assignment> | ε
+<assignments> ::=<assignment> |<assignment>,<assignments>
+<assignment> ::= var = <bool> ; | var <self_op> ; | <self_op> var; | var = unsigned_number; | var;
+<for_assignment> ::= var = <bool> ; | var <self_op> ; | <self_op> var ;
+<factor> ::= ( <bool> ) | <array> | unsigned_number | <bool_value> | ! ( <bool> ) | var
+<h_expression> ::= <h_expression> <h_math_op> <factor> | <h_expression> <judge_op> <factor> |<factor>
+<l_expression> ::= <l_expression> <l_math_op> <h_expression> | <l_expression> <judge_op> <h_expression> |<h_expression>|<factor>
+<rel> ::= <rel> <judge_op> <l_expression> | <l_expression>
+<h_rel> ::= <h_rel> <h_logic_op>  <rel> | <rel>
+<bool> ::= <bool> <ll_logic_op>  <h_rel> | <h_rel>

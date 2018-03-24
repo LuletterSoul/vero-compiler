@@ -1,5 +1,8 @@
-package com.vero.compiler.syntax.core;
+package com.vero.compiler.syntax.result;
 
+
+import com.vero.compiler.syntax.core.ActionItem;
+import com.vero.compiler.syntax.core.AnalysisHistory;
 
 import java.util.List;
 
@@ -18,14 +21,16 @@ public interface AnalysisProcessor
 
     void processSymbolStack(List<String> symbolStack);
 
-    List<AnalysisHistory> process(List<String> inputStack, List<Integer> statusStack,
-                                  List<String> symbolStack);
+    void process(List<String> inputStack, List<Integer> statusStack,
+                 List<String> symbolStack, ActionItem action);
+
+    void reset();
 
     List<List<String>> getInputHistory();
 
     List<List<Integer>> getStatusHistory();
 
-    List<List<String>> getHistorySymbol();
+    List<List<String>> getSymbolHistory();
 
     List<AnalysisHistory> getHistories();
 }

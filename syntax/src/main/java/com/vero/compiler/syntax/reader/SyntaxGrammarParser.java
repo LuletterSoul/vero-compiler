@@ -11,6 +11,7 @@ import com.vero.compiler.exception.InValidSyntaxGrammarException;
 import com.vero.compiler.exception.ParseException;
 import com.vero.compiler.exception.TokenDefinitionsNotFoundException;
 import com.vero.compiler.lexer.core.Lexeme;
+import com.vero.compiler.parser.RegularGrammarProduction;
 import com.vero.compiler.scan.core.*;
 import com.vero.compiler.scan.core.Scanner;
 
@@ -40,6 +41,8 @@ public class SyntaxGrammarParser
     private FiniteAutomationMachineEngine engine;
 
     private SyntaxTokenDefinitions tokenDefinitions;
+
+    private List<RegularGrammarProduction> productions = new ArrayList<>();
 
     public SyntaxGrammarParser(LexiconContent syntaxLexiconContent, File grammarSource)
     {
@@ -90,17 +93,27 @@ public class SyntaxGrammarParser
         List<String> productionRows = new CopyOnWriteArrayList<>();
         List<Lexeme> lexemeStream = getLexemeStream();
         StringBuilder stringBuilder = new StringBuilder();
+        boolean isLeft = true;
+        String left = "";
         validateLexemeStream(lexemeStream);
         for (Lexeme l : lexemeStream)
         {
             if (!l.getContent().equals("\r\n"))
             {
+                if (isLeft)
+                {
+                    left = l.getContent();
+                    isLeft = false;
+
+                }
                 stringBuilder.append(l.getContent());
             }
             else
             {
                 productionRows.add(stringBuilder.toString());
+                this.productions.add(new RegularGrammarProduction(left, stringBuilder.toString()));
                 stringBuilder = new StringBuilder();
+                isLeft = true;
             }
         }
         return productionRows;
@@ -139,7 +152,8 @@ public class SyntaxGrammarParser
         {
             Lexeme l = iterator.next();
             Integer tokenIndex = l.getTokenIndex();
-            if (l.getContent().equals("\r\n")) {
+            if (l.getContent().equals("\r\n"))
+            {
                 iterator.next();
                 continue;
             }

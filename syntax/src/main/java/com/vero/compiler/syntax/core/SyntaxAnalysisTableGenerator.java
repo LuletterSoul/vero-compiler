@@ -1,12 +1,11 @@
 package com.vero.compiler.syntax.core;
 
 
-import static com.vero.compiler.syntax.core.PrintUtils.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.vero.compiler.syntax.table.SyntaxDriverInfo;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

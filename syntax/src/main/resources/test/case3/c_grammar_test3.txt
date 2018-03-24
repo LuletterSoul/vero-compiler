@@ -1,0 +1,24 @@
+<E'>::=<E>
+<E>::=<program>
+<delimiter> ::= ( | ) ;
+<self_op> ::= ++ | --
+<h_logic_op> ::= && | ==
+<ll_logic_op> ::= ||
+<h_math_op> ::= * | / | %
+<l_math_op> ::= + | -
+<eql> ::= =
+<judge_op> ::= == | != | >= | <= | > | <
+<if> ::= if
+<else> ::=else
+<delimiter> ::= ( | ) | ; | { | }
+<identifier> ::=  unsigned_num | var
+<program> ::= int main() <block>
+<type> ::= int | bool | Integer | Float
+<block> ::= { <statements> return unsigned_number ; } | { <statements> return var ; }
+<declaration> ::= <type> <array>|<type> <assignment>
+<statements> ::= <statement><statements> | <statement>
+<statement> ::= <declaration> | <assignment> | <if_statement> |<for_statement>
+<assignment> ::=  var <self_op> ;  | var = unsigned_number; | <self_op> var;
+<bool_pre> ::=  var <judge_op> unsigned_num | var
+<if_statement> ::= if (<bool_pre>){ <statements> }|if (<bool_pre>){ <statements> } else { <statements> }
+<for_statement> ::= for (var) { <statement> } | while(var) { <statement> }

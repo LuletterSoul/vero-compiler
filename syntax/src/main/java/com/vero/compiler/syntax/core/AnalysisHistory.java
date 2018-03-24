@@ -22,4 +22,6 @@ public class AnalysisHistory {
 
     private List<String> symbol;
 
+    private ActionItem action;
+
 }

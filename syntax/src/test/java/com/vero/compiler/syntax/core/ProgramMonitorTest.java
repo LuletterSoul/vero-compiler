@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
+import com.vero.compiler.syntax.result.AnalysisProcessor;
+import com.vero.compiler.syntax.result.AnalysisProcessorImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Before;

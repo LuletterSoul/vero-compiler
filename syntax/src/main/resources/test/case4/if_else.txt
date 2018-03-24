@@ -1,0 +1,6 @@
+<E> ::=<stmt>
+<expre> ::= var
+<E'>::=<E>
+<stmt> ::= if (<expre> ) { <stmt> }
+<stmt> ::= if (<expre>) { <stmt> } else { <stmt> }
+<stmt> ::= var

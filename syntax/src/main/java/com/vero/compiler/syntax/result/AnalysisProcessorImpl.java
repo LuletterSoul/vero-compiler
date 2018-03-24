@@ -1,9 +1,11 @@
-package com.vero.compiler.syntax.core;
+package com.vero.compiler.syntax.result;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vero.compiler.syntax.core.ActionItem;
+import com.vero.compiler.syntax.core.AnalysisHistory;
 import lombok.Getter;
 
 
@@ -21,7 +23,7 @@ public class AnalysisProcessorImpl implements AnalysisProcessor
 
     private List<List<Integer>> statusHistory = new ArrayList<>();
 
-    private List<List<String>> historySymbol = new ArrayList<>();
+    private List<List<String>> symbolHistory = new ArrayList<>();
 
     private List<AnalysisHistory> histories = new ArrayList<>();
 
@@ -43,18 +45,25 @@ public class AnalysisProcessorImpl implements AnalysisProcessor
     public void processSymbolStack(List<String> symbolStack)
     {
         List<String> history = new ArrayList<>(symbolStack);
-        this.historySymbol.add(history);
+        this.symbolHistory.add(history);
     }
 
     @Override
-    public List<AnalysisHistory> process(List<String> inputStack, List<Integer> statusStack,
-                                         List<String> symbolStack)
+    public void process(List<String> inputStack, List<Integer> statusStack,
+                        List<String> symbolStack, ActionItem action)
     {
         List<String> inputHistory = new ArrayList<>(inputStack);
         List<Integer> statusHistory = new ArrayList<>(statusStack);
         List<String> symbolHistory = new ArrayList<>(symbolStack);
-        AnalysisHistory history = new AnalysisHistory(inputHistory, statusHistory, symbolHistory);
+        AnalysisHistory history = new AnalysisHistory(inputHistory, statusHistory, symbolHistory, action);
         this.histories.add(history);
-        return histories;
+    }
+
+    @Override
+    public void reset() {
+        this.histories.clear();
+        this.statusHistory.clear();
+        this.symbolHistory.clear();
+        this.inputHistory.clear();
     }
 }
