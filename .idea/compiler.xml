@@ -12,6 +12,7 @@
         <module name="parser" />
         <module name="scan" />
         <module name="syntax" />
+        <module name="web" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
@@ -23,6 +24,7 @@
       <module name="scan" target="1.8" />
       <module name="syntax" target="1.8" />
       <module name="vero-compiler" target="1.8" />
+      <module name="web" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

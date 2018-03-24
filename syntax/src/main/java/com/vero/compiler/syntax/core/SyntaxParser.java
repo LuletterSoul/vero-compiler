@@ -5,32 +5,41 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.vero.compiler.exception.ParseException;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.swing.*;
 
 
 /**
  * Created by XiangDe Liu on 2018/3/11.
  */
 @Getter
+@Slf4j
 public class SyntaxParser
 {
     // 输入符号,栈顶在左
-    public List<String> INPUT_STACK = new ArrayList<>();
+    private List<String> INPUT_STACK = new ArrayList<>();
 
     // 状态栈,栈顶在右
-    public List<Integer> STATUS_STACK = new ArrayList<>();
+    private List<Integer> STATUS_STACK = new ArrayList<>();
 
     // 符号栈,栈顶在右
-    public List<String> SYMBOL_STACK = new ArrayList<>();
+    private List<String> SYMBOL_STACK = new ArrayList<>();
 
     private SyntaxDriverInfo driverInfo;
 
     private SymbolMaintainer maintainer;
 
-    public SyntaxParser(SyntaxDriverInfo driverInfo, SymbolMaintainer maintainer)
+    private AnalysisProcessor processor;
+
+    public SyntaxParser(SyntaxDriverInfo driverInfo, SymbolMaintainer maintainer,
+                        AnalysisProcessor processor)
     {
         this.driverInfo = driverInfo;
         this.maintainer = maintainer;
+        this.processor = processor;
     }
 
     private void initStacks(List<String> streams)
@@ -68,8 +77,16 @@ public class SyntaxParser
 
     private void reduce(String left, int status)
     {
-        List<String> rights = this.maintainer.getRights(left).get(status);
-        int len = rights.size();
+        List<List<String>> rights = this.maintainer.getRights(left);
+        if (rights.size() <= status) {
+
+            log.error("Reduce Error.Parse End.");
+            log.error("INPUT_STACK ＊ {}", this.INPUT_STACK);
+            log.error("SYMBOL_STACK: ＊ {}", this.SYMBOL_STACK);
+            throw new ParseException("Reducing Error.");
+        }
+        List<String> right = rights.get(status);
+        int len = right.size();
         // 符号栈、状态栈pop
         for (int i = 0; i < len; i++ )
         {
@@ -99,7 +116,7 @@ public class SyntaxParser
             }
             else
             {
-                System.out.println("文法错误");
+                log.error("Wrong Grammar.");
                 return;
             }
 
@@ -107,17 +124,28 @@ public class SyntaxParser
             if (actionItem.type.equals(ActionType.SHFIT))
             {
                 shift(actionItem.status);
+                notifyProcessor();
             }
             else if (actionItem.type.equals(ActionType.REDUCE))
             {
                 reduce(actionItem.left, actionItem.status);
+                notifyProcessor();
             }
             else if (actionItem.type.equals(ActionType.ACCEPT))
             {
-                System.out.println("文法正确");
+                log.debug("Text Accepted.");
+                notifyProcessor();
                 return;
             }
         }
+    }
+
+    private void notifyProcessor()
+    {
+        this.processor.processStatusStack(this.STATUS_STACK);
+        this.processor.processInputStack(this.INPUT_STACK);
+        this.processor.processSymbolStack(this.SYMBOL_STACK);
+        this.processor.process(this.INPUT_STACK, this.STATUS_STACK, this.SYMBOL_STACK);
     }
 
     private void reset()

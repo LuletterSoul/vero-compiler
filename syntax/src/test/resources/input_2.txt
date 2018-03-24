@@ -1,0 +1,8 @@
+int main(){
+    int myInt = 123;
+    bool isEqual = 0;
+    if(myInt == 123){
+        isEqual = 1;
+    }
+    return isEqual;
+}

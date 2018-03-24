@@ -4,18 +4,21 @@ package com.vero.compiler.syntax.core;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import com.vero.compiler.lexer.token.TokenType;
 import com.vero.compiler.syntax.production.GrammarProductionManager;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * Created by XiangDe Liu on 2018/3/7.
  */
 @Getter
+@Slf4j
 public class ProgramMonitor
 {
     private SymbolMaintainer maintainer;
@@ -26,9 +29,12 @@ public class ProgramMonitor
 
     private List<ProgramItemSet> family = new ArrayList<>();
 
-    public ProgramMonitor(GrammarProductionManager productionManager)
+    private AnalysisProcessor processor;
+
+    public ProgramMonitor(GrammarProductionManager productionManager, AnalysisProcessor processor)
     {
         init(productionManager);
+        this.processor = processor;
     }
 
     private void init(GrammarProductionManager productionManager)
@@ -60,7 +66,7 @@ public class ProgramMonitor
         List<String> streams = tokenStream.stream().filter(
             t -> !t.equals(TokenType.SKIPPABLE.getType())).collect(Collectors.toList());
         SyntaxDriverInfo driverInfo = generator.generate();
-        SyntaxParser parser = new SyntaxParser(driverInfo, getMaintainer());
+        SyntaxParser parser = new SyntaxParser(driverInfo, getMaintainer(), processor);
         parser.parse(streams);
     }
 
@@ -193,9 +199,10 @@ public class ProgramMonitor
     private List<String> first(List<String> bate)
     {
         List<String> firstSet = new ArrayList<>();
-
+        if (bate.isEmpty()) {
+            return firstSet;
+        }
         first(bate, firstSet, 0);
-
         return firstSet;
     }
 
@@ -203,27 +210,30 @@ public class ProgramMonitor
     {
         String finalSymbol;
         List<String> record = new ArrayList<>();
+        if (beta.isEmpty()) {
+            return "success";
+        }
         String left = beta.get(index);
-
         if (!maintainer.isTerminal(beta.get(index)) && !record.contains(left))
         {
             record.add(left);
-            List<List<String>> rights = maintainer.getRights(left);
-            for (int i = 0; i < rights.size(); ++i)
+            List<List<String>> newRights = maintainer.getRights(left);
+            for (int i = 0; i < newRights.size(); ++i)
             {
-                if (maintainer.isRecursion(rights.get(i), left))
+                if (maintainer.isRecursion(left))
                 {
-                    if (maintainer.hasEmpty(rights))
+                    log.debug("Recursion production: Left:[{}] ::= Right:{}", left, newRights);
+                    if (maintainer.hasEmpty(newRights))
                     {
-                        rights.get(i).remove(0);
+                        newRights.get(i).remove(0);
                     }
                     else
                     {
-                        rights.remove(i);
+                        newRights.remove(i);
                     }
                 }
             }
-            for (List<String> arr : rights)
+            for (List<String> arr : newRights)
             {
                 finalSymbol = first(arr, firstSet, 0);
                 if (finalSymbol.equals("ε") && index < beta.size() - 1)

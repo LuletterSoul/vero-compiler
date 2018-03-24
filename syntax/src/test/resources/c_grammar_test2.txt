@@ -1,17 +1,32 @@
+<E'>::=<E>
+<E>::=<program>
 <self_op> ::= ++ | --
 <h_logic_op> ::= &&
 <ll_logic_op> ::= ||
-<h_logic_op> ::= * | / | %
+<h_math_op> ::= * | / | %
 <l_math_op> ::= + | -
-<block_clousure> ::= { | }
-<E'>::=<E>
-<unsigned_number>::=unsigned_number
-<E>::=<program>
 <eql> ::= =
 <judge_op> ::= == | != | >= | <= | > | <
 <program> ::= int main() <block>
 <type> ::= int | bool | Integer | Float | <keywords>
-<block> ::= { <statement> return unsigned_number ; } | { <statement> return var ; }
-<declaration> ::= <type> <assignment>
-<statement> ::=<declaration>
-<assignment> ::= var = unsigned_number; | var;
+<block> ::= { <statements> return unsigned_number ; } | { <statements> return var ; }
+<declarations> ::=<declaration> | <declaration> <declarations>
+<declaration> ::= <type> <array>|<type> <assignment>
+<array> ::= var [ unsigned_number ] | var [ var ] | var
+<statements> ::= <_M> <statement><statements> | <statement>
+<bool_value> ::= true | false
+<statement> ::=<declarations>|<declarations><statements> |if ( <bool> ) <_M> <statement>| if ( <bool> ) <_M> <statement> <_N> else <_M> <statement>| while <_M> ( <bool> ) <_M> <statement>| for ( <for_a> ; <_M> <for_b> ; <for_c> ) <_M> <statement>| { <statements> }
+<for_a> ::= <assignment> | ε
+<for_b> ::= <bool> | ε
+<for_c> ::= <for_assignment> | ε
+<assignments> ::=<assignment> |<assignment>,<assignments>
+<assignment> ::= var = <bool> ; | var <self_op> ; | <self_op> var; | var = unsigned_number; | var;
+<for_assignment> ::= var = <bool> ; | var <self_op> ; | <self_op> var ;
+<factor> ::= ( <bool> ) | <array> | unsigned_number | <bool_value> | ! ( <bool> ) | var
+<h_expression> ::= <h_expression> <h_math_op> <factor> | <h_expression> <judge_op> <factor> |<factor>
+<l_expression> ::= <l_expression> <l_math_op> <h_expression> | <l_expression> <judge_op> <h_expression> |<h_expression>|<factor>
+<rel> ::= <rel> <judge_op> <l_expression> | <l_expression>
+<h_rel> ::= <h_rel> <h_logic_op> <_M> <rel> | <rel>
+<bool> ::= <bool> <ll_logic_op> <_M> <h_rel> | <h_rel>
+<_M> ::= ε
+<_N> ::= ε

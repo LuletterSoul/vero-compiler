@@ -3,6 +3,7 @@ package com.vero.compiler.syntax.reader;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import com.vero.compiler.common.error.CompilationError;
@@ -32,7 +33,7 @@ public class SyntaxGrammarParser
 {
     private LexiconContent syntaxLexiconContent;
 
-    private List<Lexeme> lexemeStream = new ArrayList<>();
+    private List<Lexeme> lexemeStream = new CopyOnWriteArrayList<>();
 
     private File grammarSource;
 
@@ -86,7 +87,7 @@ public class SyntaxGrammarParser
 
     public List<String> parseProductionRows()
     {
-        List<String> productionRows = new ArrayList<>();
+        List<String> productionRows = new CopyOnWriteArrayList<>();
         List<Lexeme> lexemeStream = getLexemeStream();
         StringBuilder stringBuilder = new StringBuilder();
         validateLexemeStream(lexemeStream);
@@ -132,7 +133,7 @@ public class SyntaxGrammarParser
         Integer UNION_DELIMITER_INDEX = definitions.UNION_DELIMITER.getIndex();
         boolean isNewLine = false;
         String left = "";
-        List<List<String>> rightParts = new ArrayList<>();
+        List<List<String>> rightParts;
         Iterator<Lexeme> iterator = lexemeStream.iterator();
         while (iterator.hasNext())
         {
@@ -148,7 +149,7 @@ public class SyntaxGrammarParser
             iterator.next();
             l = iterator.next();
             boolean isUnion;
-            List<String> rightPart = new ArrayList<>();
+            List<String> rightPart = new CopyOnWriteArrayList<>();
             rightParts = getRightParts(productionCutMap, left);
             tokenIndex = l.getTokenIndex();
             while (iterator.hasNext())
@@ -162,7 +163,7 @@ public class SyntaxGrammarParser
                 if (isUnion)
                 {
                     rightParts.add(rightPart);
-                    rightPart = new ArrayList<>();
+                    rightPart = new CopyOnWriteArrayList<>();
                 }
                 else
                 {
@@ -196,7 +197,7 @@ public class SyntaxGrammarParser
         rightParts = productionCutMap.get(left);
         if (Objects.isNull(rightParts))
         {
-            rightParts = new ArrayList<>();
+            rightParts = new CopyOnWriteArrayList<>();
         }
         return rightParts;
     }

@@ -75,6 +75,10 @@ public class GrammarProductionManager
 
     public List<List<String>> getRightParts(String key)
     {
+        List<List<String>> rightParts = getProductCutMap().get(key);
+        if (rightParts == null) {
+            return null;
+        }
         return new ArrayList<>(getProductCutMap().get(key));
     }
 }

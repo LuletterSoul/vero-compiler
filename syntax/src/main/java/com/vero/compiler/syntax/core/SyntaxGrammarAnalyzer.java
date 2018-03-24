@@ -23,10 +23,14 @@ public class SyntaxGrammarAnalyzer
 
     private SyntaxGrammarParser grammarParser;
 
-    public SyntaxGrammarAnalyzer(ProgramMonitor monitor, SyntaxGrammarParser grammarParser)
+    private AnalysisProcessor processor;
+
+    public SyntaxGrammarAnalyzer(ProgramMonitor monitor, SyntaxGrammarParser grammarParser,
+                                 AnalysisProcessor processor)
     {
         this.monitor = monitor;
         this.grammarParser = grammarParser;
+        this.processor = processor;
     }
 
     public SyntaxGrammarAnalyzer()
@@ -39,7 +43,7 @@ public class SyntaxGrammarAnalyzer
         if (Objects.isNull(monitor))
         {
             GrammarProductionManager productionManager = buildProductionManager(sourceFile);
-            this.monitor = new ProgramMonitor(productionManager);
+            this.monitor = new ProgramMonitor(productionManager, processor);
         }
         else
         {
@@ -47,7 +51,6 @@ public class SyntaxGrammarAnalyzer
         }
         this.monitor.extendGrammar();
     }
-
 
     private GrammarProductionManager buildProductionManager(File sourceFile)
     {
