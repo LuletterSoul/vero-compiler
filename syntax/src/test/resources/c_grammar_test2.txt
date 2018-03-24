@@ -7,15 +7,16 @@
 <l_math_op> ::= + | -
 <eql> ::= =
 <judge_op> ::= == | != | >= | <= | > | <
+<identifier> ::= if | else | then
 <program> ::= int main() <block>
-<type> ::= int | bool | Integer | Float | <keywords>
+<type> ::= int | bool | Integer | Float
 <block> ::= { <statements> return unsigned_number ; } | { <statements> return var ; }
-<declarations> ::=<declaration> | <declaration> <declarations>
+<declarations> ::=<declaration><declarations>
 <declaration> ::= <type> <array>|<type> <assignment>
 <array> ::= var [ unsigned_number ] | var [ var ] | var
-<statements> ::= <_M> <statement><statements> | <statement>
+<statements> ::= <statement><statements> | <statement>
 <bool_value> ::= true | false
-<statement> ::=<declarations>|<declarations><statements> |if ( <bool> ) <_M> <statement>| if ( <bool> ) <_M> <statement> <_N> else <_M> <statement>| while <_M> ( <bool> ) <_M> <statement>| for ( <for_a> ; <_M> <for_b> ; <for_c> ) <_M> <statement>| { <statements> }
+<statement> ::= <declarations>|if ( <bool> )  <statement>| if ( <bool> )  <statement>  else  <statement>
 <for_a> ::= <assignment> | ε
 <for_b> ::= <bool> | ε
 <for_c> ::= <for_assignment> | ε
@@ -26,7 +27,5 @@
 <h_expression> ::= <h_expression> <h_math_op> <factor> | <h_expression> <judge_op> <factor> |<factor>
 <l_expression> ::= <l_expression> <l_math_op> <h_expression> | <l_expression> <judge_op> <h_expression> |<h_expression>|<factor>
 <rel> ::= <rel> <judge_op> <l_expression> | <l_expression>
-<h_rel> ::= <h_rel> <h_logic_op> <_M> <rel> | <rel>
-<bool> ::= <bool> <ll_logic_op> <_M> <h_rel> | <h_rel>
-<_M> ::= ε
-<_N> ::= ε
+<h_rel> ::= <h_rel> <h_logic_op>  <rel> | <rel>
+<bool> ::= <bool> <ll_logic_op>  <h_rel> | <h_rel>

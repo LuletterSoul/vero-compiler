@@ -1,5 +1,6 @@
-<E'> ::=<E>
 <E> ::=<stmt>
-<stmt> ::= if expr then <stmt>
-<stmt> ::= if expr then <stmt> else <stmt>
-<stmt> ::= other
+<expre> ::= var
+<E'>::=<E>
+<stmt> ::= if (<expre> ) { <stmt> }
+<stmt> ::= if (<expre>) { <stmt> } else { <stmt> }
+<stmt> ::= var

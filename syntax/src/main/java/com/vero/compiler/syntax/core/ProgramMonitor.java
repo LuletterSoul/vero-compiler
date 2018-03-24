@@ -220,7 +220,7 @@ public class ProgramMonitor
             List<List<String>> newRights = maintainer.getRights(left);
             for (int i = 0; i < newRights.size(); ++i)
             {
-                if (maintainer.isRecursion(left))
+                if (maintainer.isRecursion(newRights.get(i),left))
                 {
                     log.debug("Recursion production: Left:[{}] ::= Right:{}", left, newRights);
                     if (maintainer.hasEmpty(newRights))

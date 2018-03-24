@@ -50,7 +50,7 @@ public class SyntaxAnalysisTableGenerator
         if (log.isDebugEnabled())
         {
 //            printItems(getFamily());
-            printActionTable(getACTION_TABLE());
+//            printActionTable(getACTION_TABLE());
 //            printGotoTable(getGOTO_TABLE());
         }
         return new SyntaxDriverInfo(getACTION_TABLE(), getGOTO_TABLE());

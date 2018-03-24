@@ -26,6 +26,7 @@ import lombok.Getter;
 @Getter
 public class SyntaxTokenDefinitions extends DefaultTokenDefinitions
 {
+    public Token EXTEND;
 
     public Token SYNTAX_NO_TERMINAL;
 
@@ -57,10 +58,12 @@ public class SyntaxTokenDefinitions extends DefaultTokenDefinitions
 
         List<RegularExpression> syntaxRegularExpressionList = new ArrayList<>();
 
-
+        RegularExpression extend = RegularExpression.Literal("<E'>");
+        this.EXTEND = syntaxLexer.defineToken(extend);
+        syntaxRegularExpressionList.add(extend);
 
         RegularExpression syntaxNoTerminal = RegularExpression.Symbol('<').Concat(
-            Range('A', 'Z').Union(Symbol('_').Union(Range('a','z'))).Many1()).Union(Symbol('\'')).Concat(Symbol('>'));
+            Range('A', 'Z').Union(Symbol('_').Union(Range('a','z')).Many1())).Concat(Symbol('>'));
         this.SYNTAX_NO_TERMINAL = syntaxLexer.defineToken(syntaxNoTerminal);
         syntaxRegularExpressionList.add(syntaxNoTerminal);
 

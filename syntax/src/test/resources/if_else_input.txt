@@ -1,0 +1,18 @@
+if(myInt){
+    if(statement){
+    statement
+     }
+    else{
+    if(statement){
+       statement
+     }
+    }
+}
+else{
+    if(myInt){
+        statement
+    }
+    else{
+        statement
+    }
+}

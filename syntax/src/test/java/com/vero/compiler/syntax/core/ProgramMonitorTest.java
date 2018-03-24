@@ -52,6 +52,40 @@ public class ProgramMonitorTest
     }
 
     @Test
+    public void testIf_Else()
+    {
+
+        URL f1 = Thread.currentThread().getContextClassLoader().getResource(
+                "regular_grammar3.txt");
+        URL f2 = Thread.currentThread().getContextClassLoader().getResource("if_else.txt");
+        buildGrammar(f1, f2);
+        URL f3 = Thread.currentThread().getContextClassLoader().getResource("if_else_input.txt");
+
+        AnalysisProcessor processor = new AnalysisProcessorImpl();
+        GrammarProductionManager manager = new GrammarProductionManager(this.rowProductions,
+                this.productionCutMap);
+        ProgramMonitor monitor = new ProgramMonitor(manager, processor);
+        LexemeCollector collector = this.lexerLexiconContent.buildCollector();
+        TokenLexemeCollector lexemeCollector = null;
+        if (collector instanceof TokenLexemeCollector)
+        {
+            lexemeCollector = (TokenLexemeCollector)collector;
+        }
+        lexemeCollector.collect(new File(Objects.requireNonNull(f3).getFile()));
+        List<String> tokenStream = lexemeCollector.getTokenTypeStream();
+        monitor.monitor(tokenStream);
+
+        List<AnalysisHistory> histories = processor.getHistories();
+
+
+        printHistory(histories);
+
+        Assert.assertNotEquals(0, histories.size());
+
+    }
+
+
+    @Test
     public void testMonitor_C_Grammar1()
     {
 
@@ -77,8 +111,7 @@ public class ProgramMonitorTest
 
         List<AnalysisHistory> histories = processor.getHistories();
 
-        Assert.assertNotEquals(0, histories.size());
-
+        printHistory(histories);
     }
 
     @Test
@@ -109,12 +142,49 @@ public class ProgramMonitorTest
 
         List<AnalysisHistory> histories = processor.getHistories();
 
+        printHistory(histories);
+    }
+
+    private void printHistory(List<AnalysisHistory> histories) {
+        int i = 1;
         for (AnalysisHistory history : histories) {
             List<String> input = history.getInput();
             List<String> symbol = history.getSymbol();
+            log.debug("----------------------[{}] Period:-----------------",i++);
             log.debug("INPUT : ＊ {}",input.toString());
             log.debug("SYMBOL : ＊ {}",symbol.toString());
         }
+    }
+
+    @Test
+    public void testMonitor_C_Grammar_3()
+    {
+
+        URL f1 = Thread.currentThread().getContextClassLoader().getResource(
+                "regular_grammar3.txt");
+        URL f2 = Thread.currentThread().getContextClassLoader().getResource("c_grammar_test3.txt");
+        buildGrammar(f1, f2);
+        URL f3 = Thread.currentThread().getContextClassLoader().getResource("input_3.txt");
+
+        AnalysisProcessor processor = new AnalysisProcessorImpl();
+
+        GrammarProductionManager manager = new GrammarProductionManager(this.rowProductions,
+                this.productionCutMap);
+        ProgramMonitor monitor = new ProgramMonitor(manager, processor);
+
+        LexemeCollector collector = this.lexerLexiconContent.buildCollector();
+        TokenLexemeCollector lexemeCollector = null;
+        if (collector instanceof TokenLexemeCollector)
+        {
+            lexemeCollector = (TokenLexemeCollector)collector;
+        }
+        lexemeCollector.collect(new File(Objects.requireNonNull(f3).getFile()));
+        List<String> tokenStream = lexemeCollector.getTokenTypeStream();
+        monitor.monitor(tokenStream);
+
+        List<AnalysisHistory> histories = processor.getHistories();
+
+        printHistory(histories);
     }
 
     private void buildGrammar(URL f1, URL f2)
